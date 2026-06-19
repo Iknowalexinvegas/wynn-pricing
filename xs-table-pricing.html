@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XS Nightclub – Table Pricing</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f4f1eb; color: #1A1A2E; padding: 16px; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; background: #1A1A2E; color: #fff; padding: 14px 18px; border-radius: 10px; margin-bottom: 16px; }
+  .meta { text-align: right; font-size: 11px; color: #aaa; }
+  .meta .updated { color: #C9A84C; font-weight: 600; }
+  .event-card { background: #fff; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+  .event-header { display: flex; align-items: center; justify-content: space-between; background: #1A1A2E; color: #fff; padding: 12px 16px; cursor: pointer; }
+  .event-header:hover { background: #222244; }
+  .event-title { font-size: 13px; font-weight: 700; }
+  .event-date { font-size: 11px; color: #C9A84C; margin-top: 2px; }
+  .event-toggle { color: #C9A84C; font-size: 16px; transition: transform 0.2s; }
+  .event-toggle.open { transform: rotate(180deg); }
+  .event-body { display: none; } .event-body.open { display: block; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #C9A84C; }
+  thead th { padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #1A1A2E; text-transform: uppercase; letter-spacing: 0.4px; }
+  thead th:not(:first-child) { text-align: center; }
+  tbody tr:nth-child(even) { background: #f9f7f2; }
+  tbody tr:hover { background: #f0ecdf; }
+  td { padding: 9px 12px; font-size: 12px; border-bottom: 1px solid #eee; }
+  td:not(:first-child) { text-align: center; }
+  td.fab { font-weight: 700; } td.deposit { color: #C9A84C; font-weight: 600; } td.guests { color: #666; }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div>
+    <div style="font-size:16px;font-weight:700;letter-spacing:0.5px">XS NIGHTCLUB — TABLE PRICING</div>
+    <div style="font-size:11px;color:#C9A84C;margin-top:2px">Jun 19 – Jul 18, 2026 &nbsp;·&nbsp; wynnsocial.com</div>
+  </div>
+  <div class="meta">
+    <div>Last updated</div>
+    <div class="updated">Jun 19, 2026 4:04 AM</div>
+  </div>
+</div>
+<div id="events-container"></div>
+<script>
+const events = [
+  {"date":"Friday, Jun 19","artist":"Gryffin","tables":[["Large Stage","$15,000","$3,010",15],["Large Side Stage Patio","$6,000","$1,210",10],["Platform Section","$3,500","$710",12],["Small Side Stage Patio","$3,000","$610",6],["Poolside Section","$2,500","$510",12],["Lower Cabana","$2,000","$410",12],["Best Available","$1,000","$210",6]]},
+  {"date":"Saturday, Jun 20","artist":"Hugel","tables":[["Lower Dance Floor","$8,000","$1,610",12],["Small Side Stage Patio","$6,000","$1,210",6],["Poolside Section","$4,000","$810",12],["Upper Cabana","$2,500","$510",10],["Best Available","$1,500","$310",6]]},
+  {"date":"Friday, Jun 26","artist":"Loud Luxury","tables":[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$3,500","$710",6],["Poolside Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Upper Cabana","$2,000","$410",10],["Best Available","$1,500","$310",6]]},
+  {"date":"Saturday, Jun 27","artist":"deadmau5","tables":[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$3,500","$710",6],["Poolside Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Upper Cabana","$2,000","$410",10],["Best Available","$1,500","$310",6]]},
+  {"date":"Friday, Jul 3","artist":"Its Murph","tables":[["Large Stage","$15,000","$3,010",15],["Large Side Stage Patio","$6,000","$1,210",10],["Premium Poolside Section","$4,000","$810",15],["Small Side Stage Patio","$3,000","$610",6],["Poolside Section","$2,000","$410",12],["Lower Cabana","$1,500","$310",12],["Best Available","$1,000","$210",6]]},
+  {"date":"Saturday, Jul 4","artist":"Mau P","tables":[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$5,000","$1,010",6],["Poolside Section","$2,500","$510",12],["Lower Cabana","$2,000","$410",12],["Best Available","$1,500","$310",6]]},
+  {"date":"Friday, Jul 10","artist":"Kaskade","tables":[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$3,500","$710",6],["Poolside Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Upper Cabana","$2,000","$410",10],["Best Available","$1,500","$310",6]]},
+  {"date":"Saturday, Jul 11","artist":"Nelly - Live Performance","tables":[["Large Stage","$25,000","$5,010",15],["Large Side Stage Patio","$10,000","$2,010",10],["Premium Poolside Section","$8,000","$1,610",15],["Small Side Stage Patio","$6,000","$1,210",6],["Poolside Section","$5,000","$1,010",12],["Lower Cabana","$3,500","$710",12],["Upper Cabana","$2,500","$510",10],["Best Available","$2,000","$410",6]]},
+  {"date":"Friday, Jul 17","artist":"Gryffin","tables":[["Large Stage","$15,000","$3,010",15],["Large Side Stage Patio","$6,000","$1,210",10],["Premium Poolside Section","$4,000","$810",15],["Small Side Stage Patio","$3,000","$610",6],["Poolside Section","$2,500","$510",12],["Lower Cabana","$2,000","$410",12],["Best Available","$1,000","$210",6]]},
+  {"date":"Saturday, Jul 18","artist":"ODESZA (DJ Set)","tables":[["Large Stage","$25,000","$5,010",15],["Large Side Stage Patio","$10,000","$2,010",10],["Premium Poolside Section","$8,000","$1,610",15],["Small Side Stage Patio","$6,000","$1,210",6],["Poolside Section","$5,000","$1,010",12],["Lower Cabana","$3,500","$710",12],["Upper Cabana","$2,500","$510",10],["Best Available","$2,000","$410",6]]}
+];
+function buildEvents() {
+  const container = document.getElementById('events-container');
+  events.forEach((ev, i) => {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    const rows = ev.tables.map(([section, fab, deposit, guests]) =>
+      `<tr><td>${section}</td><td class="fab">${fab}</td><td class="deposit">${deposit}</td><td class="guests">${guests}</td></tr>`
+    ).join('');
+    card.innerHTML = `<div class="event-header" onclick="toggleCard(this)"><div><div class="event-title">${ev.artist}</div><div class="event-date">${ev.date} &nbsp;·&nbsp; XS Nightclub</div></div><span class="event-toggle">▾</span></div><div class="event-body ${i===0?'open':''}"><table><thead><tr><th>Table / Section</th><th>F&B Minimum</th><th>Deposit (Pay Now)</th><th>Max Guests</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    container.appendChild(card);
+  });
+}
+function toggleCard(h) { h.nextElementSibling.classList.toggle('open'); h.querySelector('.event-toggle').classList.toggle('open'); }
+buildEvents();
+</script>
+</body>
+</html>
