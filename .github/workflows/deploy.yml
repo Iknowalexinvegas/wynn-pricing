@@ -1,0 +1,25 @@
+name: Deploy Pricing Page
+
+on:
+  workflow_dispatch:
+    inputs:
+      html_content:
+        description: 'Base64 encoded HTML content'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Write new index.html
+        run: echo "${{ github.event.inputs.html_content }}" | base64 -d > index.html
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add index.html
+          git commit -m "Update pricing data"
+          git push
