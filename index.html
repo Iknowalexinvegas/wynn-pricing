@@ -174,7 +174,7 @@ function transformData(rows){
     var tEntry=[row.Table,fmtMoney(row.FAB_Min),Number(row.Pay_Now)>0?fmtMoney(row.Pay_Now):null,Number(row.Max_Guests)>0?Number(row.Max_Guests):null];
     var map;
     if(venue==='XS Nightclub')map=xsMap;
-    else if(venue==='Encore Beach Club')map=ebcMap;
+    else if(venue==='Encore Beach Club'||venue==='EBC')map=ebcMap;
     else if(venue==='EBC At Night')map=ebcnMap;
     else return;
     if(!map[key])map[key]={date:isoToDisplay(row.Date),dateSort:sortKey,artist:row.Artist,tables:[]};
