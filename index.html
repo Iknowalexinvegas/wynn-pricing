@@ -72,7 +72,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 .leg-dot.low { background: #2ecc71; }
 
 .no-res { text-align: center; color: #bbb; font-size: 13px; padding: 30px 16px; }
-.loading-msg { text-align: center; color: var(--gold); font-size: 13px; padding: 40px 16px; }
 
 .sched-wrap { padding: 12px; }
 .sched-title { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
@@ -104,7 +103,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 <div class="header">
   <div>
     <div class="header-title">Wynn Nightlife</div>
-    <div class="header-sub" id="header-sub">VIP Table Pricing · Loading…</div>
+    <div class="header-sub" id="header-sub">VIP Table Pricing</div>
   </div>
 </div>
 
@@ -128,196 +127,229 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 </div>
 
 <div class="panel active" id="panel-xs">
-  <div class="event-list" id="xs-list"><div class="loading-msg">Loading pricing…</div></div>
-  <div class="no-res" id="xs-nores" style="display:none">No events match</div>
+  <div class="event-list" id="xs-list"></div>
+  <div class="no-res" id="xs-nores" style="display:none">No upcoming events</div>
 </div>
 <div class="panel" id="panel-ebc">
-  <div class="event-list" id="ebc-list"><div class="loading-msg">Loading pricing…</div></div>
-  <div class="no-res" id="ebc-nores" style="display:none">No events match</div>
+  <div class="event-list" id="ebc-list"></div>
+  <div class="no-res" id="ebc-nores" style="display:none">No upcoming events</div>
 </div>
 <div class="panel" id="panel-ebcnight">
-  <div class="event-list" id="ebcnight-list"><div class="loading-msg">Loading pricing…</div></div>
-  <div class="no-res" id="ebcnight-nores" style="display:none">No events match</div>
+  <div class="event-list" id="ebcnight-list"></div>
+  <div class="no-res" id="ebcnight-nores" style="display:none">No upcoming events</div>
 </div>
 <div class="panel" id="panel-schedule">
-  <div class="sched-wrap" id="sched-wrap"><div class="loading-msg">Loading schedule…</div></div>
+  <div class="sched-wrap" id="sched-wrap"></div>
 </div>
 
 <script>
-// ── Data source ────────────────────────────────────────────────────────────────────────────────
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbzVTtItA4xPMXHFXpFc3xsEdZIZhdoFA4AAGdaKNI5SAVxce0D8vQK4vb5Xjj6sXJcl/exec';
+// ─── Apps Script endpoint ────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3iSYTll2B-zuCVRUzQwkrCDrfyJ8lqC6ZnEfsnjUZ7zsFmDKmIA4GQ-3FcdKX-dY/exec';
 
-// Global event arrays (populated on load)
-var xsEvents=[], ebcEvents=[], ebcNightEvents=[];
+// ─── Hardcoded fallback data (current through Aug 2026) ──────────────────────
+const xsEvents=[{date:"Fri Jun 26",artist:"Loud Luxury",tables:[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$3,500","$710",6],["Poolside Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Upper Cabana","$2,000","$410",10],["Best Available","$1,500","$310",6]]},{date:"Sat Jun 27",artist:"deadmau5",tables:[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$3,500","$710",6],["Poolside Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Upper Cabana","$2,000","$410",10],["Best Available","$1,500","$310",6]]},{date:"Fri Jul 3",artist:"Its Murph",tables:[["Large Stage","$15,000","$3,010",15],["Large Side Stage Patio","$6,000","$1,210",10],["Premium Poolside Section","$4,000","$810",15],["Small Side Stage Patio","$3,000","$610",6],["Poolside Section","$2,000","$410",12],["Lower Cabana","$1,500","$310",12],["Best Available","$1,000","$210",6]]},{date:"Sat Jul 4",artist:"Mau P",tables:[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$5,000","$1,010",6],["Poolside Section","$2,500","$510",12],["Lower Cabana","$2,000","$410",12],["Best Available","$1,500","$310",6]]},{date:"Fri Jul 10",artist:"Kaskade",tables:[["Large Stage","$18,000","$3,610",15],["Large Side Stage Patio","$7,000","$1,410",10],["Premium Poolside Section","$5,000","$1,010",15],["Small Side Stage Patio","$3,500","$710",6],["Poolside Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Upper Cabana","$2,000","$410",10],["Best Available","$1,500","$310",6]]},{date:"Sat Jul 11",artist:"Nelly - Live Performance",tables:[["Large Stage","$25,000","$5,010",15],["Large Side Stage Patio","$10,000","$2,010",10],["Premium Poolside Section","$8,000","$1,610",15],["Small Side Stage Patio","$6,000","$1,210",6],["Poolside Section","$5,000","$1,010",12],["Lower Cabana","$3,500","$710",12],["Upper Cabana","$2,500","$510",10],["Best Available","$2,000","$410",6]]},{date:"Fri Jul 17",artist:"Gryffin",tables:[["Large Stage","$15,000","$3,010",15],["Large Side Stage Patio","$6,000","$1,210",10],["Premium Poolside Section","$4,000","$810",15],["Small Side Stage Patio","$3,000","$610",6],["Poolside Section","$2,500","$510",12],["Lower Cabana","$2,000","$410",12],["Best Available","$1,000","$210",6]]},{date:"Sat Jul 18",artist:"ODESZA (DJ Set)",tables:[["Large Stage","$25,000","$5,010",15],["Large Side Stage Patio","$10,000","$2,010",10],["Premium Poolside Section","$8,000","$1,610",15],["Small Side Stage Patio","$6,000","$1,210",6],["Poolside Section","$5,000","$1,010",12],["Lower Cabana","$3,500","$710",12],["Upper Cabana","$2,500","$510",10],["Best Available","$2,000","$410",6]]}];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────────────────────
-var DAYS_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-var MONTHS_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var MONTHS={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+const ebcEvents=[{date:"Sun Jun 28",artist:"Valentino Khan with Special Guest Nick Elliott",tables:[["Lower Bungalow","$7,000","$1,410",15],["Dance Floor Section","$3,000","$610",10],["Water Couch","$2,500","$510",10],["Lower Cabana","$2,500","$510",12],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",6],["L Couch","$1,500","$310",8],["Daybed","$1,500","$310",8],["Lily Pad","$1,000","$210",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Fri Jul 3",artist:"Gryffin",tables:[["Lower Bungalow","$12,000","$2,410",15],["Dance Floor Section","$5,000","$1,010",10],["Water Couch","$3,500","$710",10],["Upper Bungalow","$3,500","$710",12],["Lower Cabana","$3,000","$610",12],["Center Pool Lily Pad","$2,500","$510",8],["Upper Cabana","$2,500","$510",10],["Center L Couch","$2,500","$510",6],["L Couch","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Daybed","$2,000","$410",8],["Lily Pad","$1,500","$310",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Sat Jul 4",artist:"Hugel",tables:[["Lower Bungalow","$18,000","$3,610",15],["Dance Floor Section","$10,000","$2,010",10],["Lower Cabana","$7,000","$1,410",12],["Upper Bungalow","$7,000","$1,410",12],["Water Couch","$6,000","$1,210",10],["Center L Couch","$5,000","$1,010",8],["Upper Cabana","$4,000","$810",10],["L Couch","$3,500","$710",8],["Center Pool Lily Pad","$3,500","$710",8],["Gaming Section","$3,000","$610",6],["Daybed","$3,000","$610",8],["Lily Pad","$2,000","$410",6],["Beach Couch","$2,000","$410",6],["Patio Section","$1,500","$310",6]]},{date:"Sun Jul 5",artist:"Dillon Francis with Special Guest VAVO",tables:[["Lower Bungalow","$10,000","$2,010",15],["Dance Floor Section","$3,500","$710",10],["Upper Bungalow","$3,500","$710",12],["Water Couch","$3,000","$610",10],["Lower Cabana","$3,000","$610",12],["Upper Cabana","$2,500","$510",10],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",8],["L Couch","$1,500","$310",8],["Lily Pad","$1,500","$310",6],["Daybed","$1,500","$310",8],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Fri Jul 10",artist:"Two Friends",tables:[["Lower Bungalow","$10,000","$2,010",15],["Dance Floor Section","$3,500","$710",10],["Upper Bungalow","$3,500","$710",12],["Water Couch","$3,000","$610",10],["Lower Cabana","$3,000","$610",12],["Upper Cabana","$2,500","$510",10],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",8],["L Couch","$1,500","$310",8],["Lily Pad","$1,500","$310",6],["Daybed","$1,500","$310",8],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Sat Jul 11",artist:"The Chainsmokers",tables:[["Lower Bungalow","$25,000","$5,010",15],["Dance Floor Section","$10,000","$2,010",10],["Lower Cabana","$8,000","$1,610",12],["Upper Bungalow","$8,000","$1,610",12],["Water Couch","$7,000","$1,410",10],["Upper Cabana","$5,000","$1,010",10],["Center L Couch","$5,000","$1,010",8],["L Couch","$3,500","$710",8],["Center Pool Lily Pad","$3,500","$710",8],["Gaming Section","$3,000","$610",6],["Daybed","$3,000","$610",8],["Lily Pad","$2,000","$410",6],["Beach Couch","$2,000","$410",6],["Patio Section","$1,500","$310",6]]},{date:"Sun Jul 12",artist:"Diplo",tables:[["Lower Bungalow","$15,000","$3,010",15],["Dance Floor Section","$6,000","$1,210",10],["Lower Cabana","$6,000","$1,210",12],["Water Couch","$3,500","$710",10],["Center L Couch","$2,500","$510",8],["L Couch","$2,000","$410",8],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$1,500","$310",6],["Daybed","$1,500","$310",8],["Lily Pad","$1,000","$210",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Fri Jul 17",artist:"Its Murph",tables:[["Lower Bungalow","$8,000","$1,610",15],["Dance Floor Section","$5,000","$1,010",10],["Water Couch","$3,500","$710",10],["Upper Bungalow","$3,500","$710",12],["Lower Cabana","$3,000","$610",12],["Center Pool Lily Pad","$2,500","$510",8],["Upper Cabana","$2,500","$510",10],["Center L Couch","$2,500","$510",6],["L Couch","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Daybed","$2,000","$410",8],["Lily Pad","$1,500","$310",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Sat Jul 18",artist:"Marshmello",tables:[["Lower Bungalow","$18,000","$3,610",15],["Dance Floor Section","$10,000","$2,010",10],["Lower Cabana","$7,000","$1,410",12],["Upper Bungalow","$7,000","$1,410",12],["Water Couch","$6,000","$1,210",10],["Center L Couch","$5,000","$1,010",6],["L Couch","$3,500","$710",8],["Center Pool Lily Pad","$3,500","$710",8],["Upper Cabana","$3,500","$710",10],["Gaming Section","$3,000","$610",6],["Daybed","$3,000","$610",8],["Lily Pad","$2,000","$410",6],["Beach Couch","$2,000","$410",6],["Patio Section","$1,500","$310",6]]},{date:"Sun Jul 19",artist:"BUNT.",tables:[["Lower Bungalow","$7,000","$1,410",15],["Dance Floor Section","$3,000","$610",10],["Water Couch","$2,500","$510",10],["Lower Cabana","$2,500","$510",12],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",6],["L Couch","$1,500","$310",8],["Daybed","$1,500","$310",8],["Lily Pad","$1,000","$210",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Fri Jul 24",artist:"Bob Moses (Club Set)",tables:[["Lower Bungalow","$7,000","$1,410",15],["Dance Floor Section","$3,500","$710",10],["Upper Bungalow","$3,500","$710",12],["Water Couch","$3,000","$610",10],["Lower Cabana","$3,000","$610",12],["Upper Cabana","$2,500","$510",10],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",6],["L Couch","$1,500","$310",8],["Lily Pad","$1,500","$310",6],["Daybed","$1,500","$310",8],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Sat Jul 25",artist:"ODESZA (DJ Set)",tables:[["Lower Bungalow","$30,000","$6,010",15],["Dance Floor Section","$10,000","$2,010",10],["Lower Cabana","$8,000","$1,610",12],["Upper Bungalow","$8,000","$1,610",12],["Water Couch","$7,000","$1,410",10],["Center Pool Lily Pad","$5,000","$1,010",8],["Center L Couch","$5,000","$1,010",6],["Upper Cabana","$4,000","$810",10],["L Couch","$3,500","$710",8],["Gaming Section","$3,000","$610",6],["Daybed","$3,000","$610",8],["Lily Pad","$2,000","$410",6],["Beach Couch","$2,000","$410",6],["Patio Section","$1,500","$310",6]]},{date:"Sun Jul 26",artist:"Sullivan King with Special Guest Bella Hue",tables:[["Lower Bungalow","$7,000","$1,410",15],["Dance Floor Section","$3,000","$610",10],["Water Couch","$2,500","$510",10],["Lower Cabana","$2,500","$510",12],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",6],["L Couch","$1,500","$310",8],["Daybed","$1,500","$310",8],["Lily Pad","$1,000","$210",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Fri Jul 31",artist:"AYYBO",tables:[["Lower Bungalow","$7,000","$1,410",15],["Dance Floor Section","$3,500","$710",10],["Upper Bungalow","$3,500","$710",12],["Lower Cabana","$3,000","$610",12],["Water Couch","$2,500","$510",10],["Upper Cabana","$2,500","$510",10],["Center Pool Lily Pad","$2,000","$410",8],["Center L Couch","$2,000","$410",6],["L Couch","$1,500","$310",8],["Lily Pad","$1,500","$310",6],["Gaming Section","$1,500","$310",6],["Daybed","$1,500","$310",8],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]},{date:"Sat Aug 1",artist:"The Chainsmokers",tables:[["Lower Bungalow","$25,000","$5,010",15],["Dance Floor Section","$10,000","$2,010",10],["Water Couch","$10,000","$2,010",10],["Lower Cabana","$7,000","$1,410",12],["Upper Bungalow","$7,000","$1,410",12],["Center L Couch","$5,000","$1,010",6],["Upper Cabana","$4,000","$810",10],["L Couch","$3,500","$710",8],["Center Pool Lily Pad","$3,500","$710",8],["Gaming Section","$3,000","$610",6],["Daybed","$3,000","$610",8],["Lily Pad","$2,000","$410",6],["Beach Couch","$2,000","$410",6],["Patio Section","$1,500","$310",6]]},{date:"Sun Aug 2",artist:"Special Guest",tables:[["Lower Bungalow","$7,000","$1,410",15],["Dance Floor Section","$3,000","$610",10],["Water Couch","$2,500","$510",10],["Lower Cabana","$2,500","$510",12],["Center Pool Lily Pad","$2,000","$410",8],["Gaming Section","$2,000","$410",6],["Center L Couch","$2,000","$410",6],["L Couch","$1,500","$310",8],["Daybed","$1,500","$310",8],["Lily Pad","$1,000","$210",6],["Patio Section","$1,000","$210",6],["Beach Couch","$1,000","$210",6]]}];
 
-function isoToLocal(iso){var d=new Date(iso);return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());}
-function isoToDisplay(iso){var d=isoToLocal(iso);return DAYS_FULL[d.getDay()].slice(0,3)+' '+MONTHS_SHORT[d.getMonth()]+' '+d.getDate();}
-function isoToSortKey(iso){var d=isoToLocal(iso);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function parseDate(s){var m=s.match(/(\w{3})\s+(\d+)/);return m?new Date(2026,MONTHS[m[1]],parseInt(m[2])):null;}
-function today(){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+const ebcNightEvents=[{date:"Wed Jul 1",artist:"AYYBO",tables:[["Lower Bungalow","$5,000","$1,010",15],["Dance Floor Section","$2,500","$510",10],["Medium Backstage Section","$2,000","$410",8],["Water Couch","$2,000","$410",10],["Lower Cabana","$2,000","$410",12],["Center L Couch Section","$1,500","$310",8],["Center Pool Lilypad","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8],["Gaming Section","$1,000","$210",8]]},{date:"Sat Jul 4",artist:"Subtronics",tables:[["Dance Floor Section","$5,000","$1,010",10],["Lower Bungalow","$5,000","$1,010",15],["Lower Cabana","$2,500","$510",12],["Center L Couch Section","$2,000","$410",8],["Gaming Section","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8]]},{date:"Wed Jul 8",artist:"Odd Mob",tables:[["Lower Bungalow","$5,000","$1,010",15],["Large Backstage Section","$3,000","$610",12],["Dance Floor Section","$2,500","$510",10],["Medium Backstage Section","$2,000","$410",8],["Water Couch","$2,000","$410",10],["Lower Cabana","$2,000","$410",12],["Center L Couch Section","$1,500","$310",8],["Center Pool Lilypad","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8],["Gaming Section","$1,000","$210",8]]},{date:"Sat Jul 11",artist:"Special Guest",tables:[["Dance Floor Section","$8,000","$1,610",10],["Lower Bungalow","$7,000","$1,410",15],["Large Backstage Section","$5,000","$1,010",12],["Water Couch","$3,500","$710",10],["Lower Cabana","$3,500","$710",12],["Medium Backstage Section","$2,500","$510",8],["Center L Couch Section","$2,500","$510",8],["L Couch Section","$1,500","$310",8],["Gaming Section","$1,500","$310",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8]]},{date:"Wed Jul 15",artist:"Two Friends with Special Guest Charly Jordan",tables:[["Dance Floor Section","$8,000","$1,610",10],["Lower Bungalow","$5,000","$1,010",15],["Large Backstage Section","$3,000","$610",12],["Lower Cabana","$2,500","$510",12],["Medium Backstage Section","$2,000","$410",8],["Water Couch","$2,000","$410",10],["Center L Couch Section","$1,500","$310",8],["Center Pool Lilypad","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8],["Gaming Section","$1,000","$210",8]]},{date:"Wed Jul 22",artist:"Dillon Francis",tables:[["Lower Bungalow","$5,000","$1,010",15],["Dance Floor Section","$3,500","$710",10],["Large Backstage Section","$3,000","$610",12],["Water Couch","$2,500","$510",10],["Lower Cabana","$2,500","$510",12],["Medium Backstage Section","$2,000","$410",8],["Center L Couch Section","$1,500","$310",8],["Center Pool Lilypad","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8],["Gaming Section","$1,000","$210",8]]},{date:"Sat Jul 25",artist:"Slander",tables:[["Lower Bungalow","$5,000","$1,010",15],["Large Backstage Section","$5,000","$1,010",12],["Dance Floor Section","$3,500","$710",10],["Medium Backstage Section","$2,500","$510",8],["Lower Cabana","$2,500","$510",12],["Water Couch","$2,000","$410",10],["Center Pool Lilypad","$2,000","$410",8],["Center L Couch Section","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8],["Gaming Section","$1,000","$210",8]]},{date:"Wed Jul 29",artist:"HNTR",tables:[["Lower Bungalow","$5,000","$1,010",15],["Large Backstage Section","$3,000","$610",12],["Dance Floor Section","$2,500","$510",10],["Lower Cabana","$2,500","$510",12],["Medium Backstage Section","$2,000","$410",8],["Water Couch","$2,000","$410",10],["Center L Couch Section","$1,500","$310",8],["Center Pool Lilypad","$1,500","$310",8],["L Couch Section","$1,000","$210",8],["Lilypad","$1,000","$210",6],["Beach Couch","$1,000","$210",6],["Daybed","$1,000","$210",8],["Gaming Section","$1,000","$210",8]]},{date:"Sat Aug 1",artist:"Diplo",tables:[["Dance Floor Section","$12,000","$2,410",10],["Lower Bungalow","$12,000","$2,410",15],["Upper Bungalow","$7,000","$1,410",12],["Large Backstage Section","$7,000","$1,410",12],["Medium Backstage Section","$5,000","$1,010",8],["Water Couch","$5,000","$1,010",10],["Lower Cabana","$5,000","$1,010",12],["Center L Couch Section","$5,000","$1,010",8],["Upper Cabana","$4,000","$810",10],["Center Pool Lilypad","$3,500","$710",8],["L Couch Section","$2,500","$510",8],["Gaming Section","$2,500","$510",8],["Lilypad","$2,000","$410",6],["Daybed","$2,000","$410",8],["Beach Couch","$1,500","$310",6]]}];
+
+// ─── Utility ─────────────────────────────────────────────────────────────────
+const MONTHS={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function parseDate(s){const m=s.match(/(\w{3})\s+(\d+)/);return m?new Date(2026,MONTHS[m[1]],parseInt(m[2])):null;}
+function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
 function dateKey(d){return d?d.toISOString().slice(0,10):'';}
-function parseFab(s){var m=String(s).replace(/,/g,'').match(/\d+/);return m?parseInt(m[0]):-1;}
-function fmtMoney(n){if(!n||Number(n)<=0)return '—';return '$'+Number(n).toLocaleString();}
+function parseFab(s){const m=String(s).replace(/,/g,'').match(/\d+/);return m?parseInt(m[0]):-1;}
 
-// ── Transform GAS JSON → event arrays ─────────────────────────────────────────────────────────────
-function transformData(rows){
-  var xsMap={},ebcMap={},ebcnMap={};
-  rows.forEach(function(row){
-    var venue=row.Venue;
-    var sortKey=isoToSortKey(row.Date);
-    var key=sortKey+'|'+row.Artist;
-    var tEntry=[row.Table,fmtMoney(row.FAB_Min),Number(row.Pay_Now)>0?fmtMoney(row.Pay_Now):null,Number(row.Max_Guests)>0?Number(row.Max_Guests):null];
-    var map;
-    if(venue==='XS Nightclub')map=xsMap;
-    else if(venue==='Encore Beach Club'||venue==='EBC')map=ebcMap;
-    else if(venue==='EBC At Night')map=ebcnMap;
-    else return;
-    if(!map[key])map[key]={date:isoToDisplay(row.Date),dateSort:sortKey,artist:row.Artist,tables:[]};
-    map[key].tables.push(tEntry);
-  });
-  function sortMap(m){return Object.values(m).sort(function(a,b){return a.dateSort<b.dateSort?-1:1;});}
-  return{xs:sortMap(xsMap),ebc:sortMap(ebcMap),ebcnight:sortMap(ebcnMap)};
-}
-
-// ── UI ────────────────────────────────────────────────────────────────────────────────────
+// ─── Render helpers ───────────────────────────────────────────────────────────
 function buildRows(tables){
-  var prices=tables.map(function(r){return parseFab(r[1]);});
-  var valid=prices.filter(function(p){return p>0;});
-  var maxP=valid.length?Math.max.apply(null,valid):-1;
-  var minP=valid.length?Math.min.apply(null,valid):-1;
-  return tables.map(function(row,i){
-    var name=row[0],fab=row[1],deposit=row[2],guests=row[3];
-    var isTop=prices[i]===maxP&&maxP>0;
-    var isLow=prices[i]===minP&&minP>0&&minP!==maxP;
-    var cls=isTop?' top-row':isLow?' low-row':'';
-    var badge=isTop?'★':isLow?'↓':'';
-    var dep=deposit?'Pay Now: <b>'+deposit+'</b>':'Inquiry Only';
-    var cap=guests?' · '+guests+' guests':'';
-    return '<div class="trow'+cls+'"><div class="trow-name">'+name+'<div class="trow-sub">'+dep+cap+'</div></div><div class="trow-prices"><div class="trow-fab">'+fab+'</div><div class="trow-deposit">F&amp;B min</div></div><div class="trow-badge">'+badge+'</div></div>';
-  }).join('')+'<div class="legend-bar"><span class="leg"><span class="leg-dot top"></span>★ Highest</span><span class="leg"><span class="leg-dot low"></span>↓ Lowest</span></div>';
+  const prices=tables.map(r=>parseFab(r[1]));
+  const valid=prices.filter(p=>p>0);
+  const maxP=valid.length?Math.max(...valid):-1;
+  const minP=valid.length?Math.min(...valid):-1;
+  return tables.map(([name,fab,deposit,guests],i)=>{
+    const isTop=prices[i]===maxP&&maxP>0;
+    const isLow=prices[i]===minP&&minP>0&&minP!==maxP;
+    const cls=isTop?' top-row':isLow?' low-row':'';
+    const badge=isTop?'★':isLow?'↓':'';
+    const dep=deposit?`Pay Now: <b>${deposit}</b>`:`Inquiry Only`;
+    const cap=guests?` · ${guests} guests`:'';
+    return `<div class="trow${cls}"><div class="trow-name">${name}<div class="trow-sub">${dep}${cap}</div></div><div class="trow-prices"><div class="trow-fab">${fab}</div><div class="trow-deposit">F&amp;B min</div></div><div class="trow-badge">${badge}</div></div>`;
+  }).join('')+`<div class="legend-bar"><span class="leg"><span class="leg-dot top"></span>★ Highest</span><span class="leg"><span class="leg-dot low"></span>↓ Lowest</span></div>`;
 }
 
 function toggleCard(hd){
-  var body=hd.nextElementSibling,card=hd.parentElement;
+  const body=hd.nextElementSibling,card=hd.parentElement;
   if(!body.dataset.loaded){
-    var vk=card.dataset.venue,idx=parseInt(card.dataset.idx);
-    var evts=vk==='xs'?xsEvents:vk==='ebc'?ebcEvents:ebcNightEvents;
-    body.innerHTML=buildRows(evts[idx].tables);body.dataset.loaded='1';
+    const vk=card.dataset.venue,idx=parseInt(card.dataset.idx);
+    const src=vk==='xs'?currentXs:vk==='ebc'?currentEbc:currentEbcNight;
+    body.innerHTML=buildRows(src[idx].tables);
+    body.dataset.loaded='1';
   }
-  var open=body.classList.toggle('open');
+  const open=body.classList.toggle('open');
   hd.querySelector('.event-arrow').classList.toggle('open',open);
 }
 
 function nextIdx(events){
-  var t=today();
-  for(var i=0;i<events.length;i++){var d=parseDate(events[i].date);if(d&&d>=t)return i;}
+  const t=today();
+  for(let i=0;i<events.length;i++){const d=parseDate(events[i].date);if(d&&d>=t)return i;}
   return -1;
 }
 
 function buildList(events,containerId,noresId,vk,venueName){
-  var nx=nextIdx(events);
-  document.getElementById(containerId).innerHTML=events.map(function(ev,i){
-    var d=parseDate(ev.date),isNext=i===nx;
-    return '<div class="event-card'+(isNext?' next-card':'')+'" id="ecard-'+vk+'-'+i+'" data-venue="'+vk+'" data-idx="'+i+'" data-search="'+(ev.artist+' '+ev.date).toLowerCase()+'" data-date-obj="'+dateKey(d)+'"><div class="event-hd" onclick="toggleCard(this)"><div class="event-info"><div class="event-artist">'+ev.artist+(isNext?'<span class="next-pill">NEXT UP</span>':'')+'</div><div class="event-meta">'+ev.date+' · '+venueName+'</div></div><span class="event-arrow">▾</span></div><div class="event-body"></div></div>';
+  const nx=nextIdx(events);
+  document.getElementById(containerId).innerHTML=events.map((ev,i)=>{
+    const d=parseDate(ev.date),isNext=i===nx;
+    return `<div class="event-card${isNext?' next-card':''}" id="ecard-${vk}-${i}" data-venue="${vk}" data-idx="${i}" data-search="${(ev.artist+' '+ev.date).toLowerCase()}" data-date-obj="${dateKey(d)}"><div class="event-hd" onclick="toggleCard(this)"><div class="event-info"><div class="event-artist">${ev.artist}${isNext?'<span class="next-pill">NEXT UP</span>':''}</div><div class="event-meta">${ev.date} · ${venueName}</div></div><span class="event-arrow">▾</span></div><div class="event-body"></div></div>`;
   }).join('');
-  if(nx>=0){var c=document.getElementById('ecard-'+vk+'-'+nx);if(c){toggleCard(c.querySelector('.event-hd'));setTimeout(function(){c.scrollIntoView({behavior:'smooth',block:'start'});},100);}}
+  if(nx>=0){const c=document.getElementById(`ecard-${vk}-${nx}`);if(c){toggleCard(c.querySelector('.event-hd'));setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),100);}}
 }
 
-var curFilter='all',curSearch='';
+// ─── Filter state ─────────────────────────────────────────────────────────────
+let curFilter='all', curSearch='';
+
 function onSearch(val){curSearch=val.trim().toLowerCase();document.getElementById('search-clear').style.display=val?'block':'none';applyFilters();}
 function clearSearch(){document.getElementById('search-input').value='';onSearch('');}
-function setFilter(f,btn){curFilter=f;document.querySelectorAll('.qf').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');applyFilters();}
+function setFilter(f,btn){curFilter=f;document.querySelectorAll('.qf').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
+
 function applyFilters(){
-  var t=today();var wknd=new Set();
-  for(var i=0;i<7;i++){var d=new Date(t);d.setDate(t.getDate()+i);if([0,5,6].includes(d.getDay()))wknd.add(dateKey(d));}
-  ['xs','ebc','ebcnight'].forEach(function(vk){
-    var vis=0;
-    document.querySelectorAll('#panel-'+vk+' .event-card').forEach(function(card){
-      var show=!curSearch||card.dataset.search.includes(curSearch);
-      if(show&&curFilter==='tonight')show=card.dataset.dateObj===dateKey(t);
-      if(show&&curFilter==='weekend')show=wknd.has(card.dataset.dateObj);
-      card.style.display=show?'':'none';if(show)vis++;
+  const t=today();
+  const todayKey=dateKey(t);
+  const wknd=new Set();
+  for(let i=0;i<7;i++){const d=new Date(t);d.setDate(t.getDate()+i);if([0,5,6].includes(d.getDay()))wknd.add(dateKey(d));}
+
+  ['xs','ebc','ebcnight'].forEach(vk=>{
+    let vis=0;
+    document.querySelectorAll(`#panel-${vk} .event-card`).forEach(card=>{
+      // Always hide past events
+      const dateObj=card.dataset.dateObj;
+      let show=!dateObj||dateObj>=todayKey;
+      // Apply search
+      if(show&&curSearch)show=card.dataset.search.includes(curSearch);
+      // Apply quick filters
+      if(show&&curFilter==='tonight')show=dateObj===todayKey;
+      if(show&&curFilter==='weekend')show=wknd.has(dateObj);
+      card.style.display=show?'':'none';
+      if(show)vis++;
     });
-    document.getElementById(vk+'-nores').style.display=vis?'none':'block';
+    document.getElementById(`${vk}-nores`).style.display=vis?'none':'block';
   });
 }
 
+// ─── Venue switcher ───────────────────────────────────────────────────────────
 function switchVenue(vk,btn){
-  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.venue-btn').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('panel-'+vk).classList.add('active');btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.venue-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+vk).classList.add('active');
+  btn.classList.add('active');
 }
 
 function jumpToEvent(vk,idx){
-  var btnMap={xs:0,ebc:1,ebcnight:2};
+  const btnMap={xs:0,ebc:1,ebcnight:2};
   switchVenue(vk,document.querySelectorAll('.venue-btn')[btnMap[vk]]);
-  setTimeout(function(){
-    var c=document.getElementById('ecard-'+vk+'-'+idx);if(!c)return;
+  setTimeout(()=>{
+    const c=document.getElementById(`ecard-${vk}-${idx}`);
+    if(!c)return;
     c.scrollIntoView({behavior:'smooth',block:'start'});
-    var body=c.querySelector('.event-body');if(!body.classList.contains('open'))toggleCard(c.querySelector('.event-hd'));
+    const body=c.querySelector('.event-body');
+    if(!body.classList.contains('open'))toggleCard(c.querySelector('.event-hd'));
   },60);
 }
 
+// ─── Schedule view ────────────────────────────────────────────────────────────
 function buildSchedule(){
-  var DAY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var patterns=[{key:'xs',label:'XS',cls:'wpill-xs',days:[5,6]},{key:'ebc',label:'EBC',cls:'wpill-ebc',days:[5,6,0]},{key:'ebcn',label:'EBC Night',cls:'wpill-ebcn',days:[3,6]}];
-  var html='<div class="sched-title">Weekly Pattern</div><div class="week-grid">';
-  DAY.forEach(function(name,i){
-    var vs=patterns.filter(function(p){return p.days.includes(i);});
-    html+='<div class="wday'+(vs.length?' has-events':'')+'"><div class="wday-name">'+name+'</div>';
-    vs.forEach(function(p){html+='<span class="wpill '+p.cls+'">'+p.label+'</span>';});html+='</div>';
+  const DAY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const patterns=[
+    {key:'xs',   label:'XS',       cls:'wpill-xs',   days:[5,6]},
+    {key:'ebc',  label:'EBC',      cls:'wpill-ebc',  days:[5,6,0]},
+    {key:'ebcn', label:'EBC Night',cls:'wpill-ebcn', days:[3,6]},
+  ];
+  let html=`<div class="sched-title">Weekly Pattern</div><div class="week-grid">`;
+  DAY.forEach((name,i)=>{
+    const vs=patterns.filter(p=>p.days.includes(i));
+    html+=`<div class="wday${vs.length?' has-events':''}"><div class="wday-name">${name}</div>`;
+    vs.forEach(p=>html+=`<span class="wpill ${p.cls}">${p.label}</span>`);
+    html+='</div>';
   });
   html+='</div>';
-  var dateMap={};
-  function addEvts(evts,vk,cls){evts.forEach(function(ev,idx){var d=parseDate(ev.date);if(!d)return;var k=dateKey(d);if(!dateMap[k])dateMap[k]={d:d,items:[]};dateMap[k].items.push({vk:vk,idx:idx,cls:cls,artist:ev.artist});});}
-  addEvts(xsEvents,'xs','xs');addEvts(ebcEvents,'ebc','ebc');addEvts(ebcNightEvents,'ebcnight','ebcn');
-  var t=today();
-  html+='<div class="sched-title" style="margin-top:16px">45-Day Schedule</div><div class="tap-hint">Tap a date to jump to pricing</div>';
-  Object.keys(dateMap).sort().forEach(function(k){
-    var ent=dateMap[k];var d=ent.d;var items=ent.items;
-    var isToday=dateKey(d)===dateKey(t);
-    var label=FULL[d.getDay()]+', '+MON[d.getMonth()]+' '+d.getDate();
-    var venueRows=items.map(function(it){return '<div class="dr-row"><span class="dr-badge '+it.cls+'">'+(it.cls==='xs'?'XS':it.cls==='ebc'?'EBC':'EBC Night')+'</span><span class="dr-artist">'+it.artist+'</span></div>';}).join('');
-    html+='<div class="date-row'+(isToday?' today':'')+'" onclick="jumpToEvent(\'' +items[0].vk+ '\','+items[0].idx+')"><div class="dr-date">'+label+(isToday?'<span class="dr-today">Today</span>':'')+'</div><div class="dr-venues">'+venueRows+'</div><div class="dr-arrow">›</div></div>';
+
+  const dateMap={};
+  const add=(evts,vk,cls)=>evts.forEach((ev,idx)=>{
+    const d=parseDate(ev.date);if(!d)return;
+    const k=dateKey(d);
+    if(!dateMap[k])dateMap[k]={d,items:[]};
+    dateMap[k].items.push({vk,idx,cls,artist:ev.artist});
+  });
+  add(currentXs,'xs','xs');
+  add(currentEbc,'ebc','ebc');
+  add(currentEbcNight,'ebcnight','ebcn');
+
+  const t=today();
+  html+=`<div class="sched-title" style="margin-top:16px">45-Day Schedule</div><div class="tap-hint">Tap a date to jump to pricing</div>`;
+  Object.keys(dateMap).sort().forEach(k=>{
+    const{d,items}=dateMap[k];
+    if(d<t)return; // skip past dates
+    const isToday=dateKey(d)===dateKey(t);
+    const label=`${FULL[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`;
+    const venueRows=items.map(it=>`<div class="dr-row"><span class="dr-badge ${it.cls}">${it.cls==='xs'?'XS':it.cls==='ebc'?'EBC':'EBC Night'}</span><span class="dr-artist">${it.artist}</span></div>`).join('');
+    html+=`<div class="date-row${isToday?' today':''}" onclick="jumpToEvent('${items[0].vk}',${items[0].idx})"><div class="dr-date">${label}${isToday?'<span class="dr-today">Today</span>':''}</div><div class="dr-venues">${venueRows}</div><div class="dr-arrow">›</div></div>`;
   });
   document.getElementById('sched-wrap').innerHTML=html;
 }
 
-// ── Load from GAS ─────────────────────────────────────────────────────────────────────────────
-function loadData(){
-  fetch(GAS_URL)
-    .then(function(r){return r.json();})
-    .then(function(rows){
-      var data=transformData(rows);
-      xsEvents=data.xs; ebcEvents=data.ebc; ebcNightEvents=data.ebcnight;
-      buildList(xsEvents,'xs-list','xs-nores','xs','XS Nightclub');
-      buildList(ebcEvents,'ebc-list','ebc-nores','ebc','Encore Beach Club');
-      buildList(ebcNightEvents,'ebcnight-list','ebcnight-nores','ebcnight','EBC At Night');
-      buildSchedule();
-      if(rows.length&&rows[0].Last_Updated){
-        var lu=new Date(rows[0].Last_Updated);
-        var ds=lu.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-        document.getElementById('header-sub').textContent='VIP Table Pricing · '+ds;
-      } else {
-        document.getElementById('header-sub').textContent='VIP Table Pricing';
-      }
-    })
-    .catch(function(err){
-      console.error(err);
-      ['xs-list','ebc-list','ebcnight-list'].forEach(function(id){document.getElementById(id).innerHTML='<div class="no-res">⚠️ Failed to load. Please refresh.</div>';});
-      document.getElementById('header-sub').textContent='VIP Table Pricing · Load failed';
-      document.getElementById('sched-wrap').innerHTML='<div class="no-res">⚠️ Failed to load.</div>';
+// ─── Live data fetch (replaces fallback if sheet has data) ────────────────────
+async function loadLiveData(){
+  try{
+    const res=await fetch(SCRIPT_URL);
+    if(!res.ok)return;
+    const rows=await res.json();
+    if(!Array.isArray(rows)||rows.length===0)return;
+
+    const vm={'XS Nightclub':'xs','Encore Beach Club':'ebc','EBC At Night':'ebcnight'};
+    const groups={};
+    rows.forEach(r=>{
+      const vk=vm[r.venue];
+      if(!vk||!r.date||!r.table)return;
+      const key=`${vk}|${r.date}`;
+      if(!groups[key])groups[key]={vk,date:r.date,artist:r.artist||'To Be Announced',tables:[]};
+      const g=parseInt(r.guests)||null;
+      groups[key].tables.push([r.table,r.fabMin,r.payNow||null,g]);
     });
+
+    const live={xs:[],ebc:[],ebcnight:[]};
+    Object.values(groups).forEach(g=>live[g.vk].push({date:g.date,artist:g.artist,tables:g.tables}));
+    ['xs','ebc','ebcnight'].forEach(vk=>live[vk].sort((a,b)=>{
+      const da=parseDate(a.date),db=parseDate(b.date);
+      return (da?da.getTime():0)-(db?db.getTime():0);
+    }));
+
+    // Only replace fallback if live data has something
+    if(live.xs.length){currentXs=live.xs;buildList(live.xs,'xs-list','xs-nores','xs','XS Nightclub');}
+    if(live.ebc.length){currentEbc=live.ebc;buildList(live.ebc,'ebc-list','ebc-nores','ebc','Encore Beach Club');}
+    if(live.ebcnight.length){currentEbcNight=live.ebcnight;buildList(live.ebcnight,'ebcnight-list','ebcnight-nores','ebcnight','EBC At Night');}
+    if(live.xs.length||live.ebc.length||live.ebcnight.length){
+      buildSchedule();
+      document.getElementById('header-sub').textContent='VIP Table Pricing · Live';
+    }
+    applyFilters();
+  }catch(e){
+    // Silent fail — fallback data is already showing
+  }
 }
 
-loadData();
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+// Current data sources — may be swapped to live data after fetch
+let currentXs=xsEvents, currentEbc=ebcEvents, currentEbcNight=ebcNightEvents;
+
+buildList(xsEvents,'xs-list','xs-nores','xs','XS Nightclub');
+buildList(ebcEvents,'ebc-list','ebc-nores','ebc','Encore Beach Club');
+buildList(ebcNightEvents,'ebcnight-list','ebcnight-nores','ebcnight','EBC At Night');
+buildSchedule();
+applyFilters();
+
+// Fetch live data in background — updates display silently if available
+loadLiveData();
 </script>
 </body>
 </html>
