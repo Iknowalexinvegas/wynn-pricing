@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Wynn Nightlife – Table Pricing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wynn Nightlife – Live Table Pricing</title>
 <style>
 :root {
   --gold: #C9A84C;
@@ -13,34 +13,33 @@
   --border: #e0dbd0;
   --text: #1A1A2E;
   --sub: #666;
-  --top-bg: #fff8e6;
-  --low-bg: #edfaf2;
+  --avail: #2ecc71;
+  --sold: #d05050;
+  --inq: #C9A84C;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { font-size: 16px; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); padding-bottom: env(safe-area-inset-bottom, 20px); }
 
-.header { background: var(--dark); color: #fff; padding: 14px 16px 12px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header { background: var(--dark); color: #fff; padding: 14px 16px 12px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 10px; }
 .header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.3px; }
 .header-sub { font-size: 11px; color: var(--gold); margin-top: 1px; }
+.refresh-btn { background: var(--gold); color: var(--dark); border: none; border-radius: 8px; font-size: 12px; font-weight: 800; padding: 9px 14px; cursor: pointer; flex-shrink: 0; }
+.refresh-btn:disabled { opacity: 0.5; }
 
 .venue-bar { display: flex; background: var(--dark); padding: 0 12px 12px; gap: 8px; }
 .venue-btn { flex: 1; padding: 9px 4px; border: 1.5px solid #444; border-radius: 8px; font-size: 11px; font-weight: 700; color: #aaa; background: transparent; cursor: pointer; text-align: center; line-height: 1.3; }
 .venue-btn.active { background: var(--gold); border-color: var(--gold); color: var(--dark); }
 
-.controls { padding: 10px 12px 6px; display: flex; gap: 8px; align-items: center; background: var(--bg); }
+.controls { padding: 10px 12px 6px; display: flex; gap: 8px; align-items: center; }
 .search-wrap { flex: 1; position: relative; }
 .search-wrap input { width: 100%; height: 40px; padding: 0 34px 0 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; background: #fff; color: var(--text); outline: none; }
 .search-wrap input:focus { border-color: var(--gold); }
-.search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 17px; color: #bbb; display: none; cursor: pointer; padding: 4px; }
 
 .filters { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; scrollbar-width: none; }
 .filters::-webkit-scrollbar { display: none; }
 .qf { padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 700; color: #888; background: #fff; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .qf.active { background: var(--dark); border-color: var(--dark); color: var(--gold); }
-
-.panel { display: none; }
-.panel.active { display: block; }
 
 .event-list { padding: 0 12px 20px; }
 .event-card { background: var(--card); border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
@@ -49,7 +48,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 .event-info { flex: 1; min-width: 0; }
 .event-artist { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .event-meta { font-size: 11px; color: var(--gold); margin-top: 2px; }
-.next-pill { font-size: 9px; font-weight: 800; background: var(--gold); color: var(--dark); border-radius: 4px; padding: 2px 6px; margin-left: 6px; vertical-align: middle; flex-shrink: 0; }
+.next-pill { font-size: 9px; font-weight: 800; background: var(--gold); color: var(--dark); border-radius: 4px; padding: 2px 6px; margin-left: 6px; vertical-align: middle; }
 .event-arrow { color: var(--gold); font-size: 18px; transition: transform 0.2s; flex-shrink: 0; }
 .event-arrow.open { transform: rotate(180deg); }
 
@@ -57,304 +56,187 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 .event-body.open { display: block; }
 .trow { display: flex; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--border); gap: 8px; }
 .trow:last-child { border-bottom: none; }
-.trow.top-row { background: var(--top-bg); }
-.trow.low-row { background: var(--low-bg); }
-.trow.sold-row { opacity: 0.5; }
-.trow-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); min-width: 0; }
+.trow.sold { opacity: 0.55; }
+.trow-name { flex: 1; font-size: 13px; font-weight: 600; min-width: 0; }
 .trow-sub { font-size: 10px; font-weight: 400; color: var(--sub); margin-top: 1px; }
 .trow-prices { text-align: right; flex-shrink: 0; }
-.trow-fab { font-size: 14px; font-weight: 700; color: var(--text); }
-.trow-fab.sold-price { text-decoration: line-through; color: var(--sub); }
+.trow-fab { font-size: 14px; font-weight: 700; }
 .trow-deposit { font-size: 10px; color: var(--sub); margin-top: 1px; }
-.trow-badge { font-size: 12px; flex-shrink: 0; width: 16px; text-align: center; }
-.sold-badge { font-size: 8px; font-weight: 800; background: #ccc; color: #fff; border-radius: 3px; padding: 1px 4px; vertical-align: middle; margin-left: 4px; }
-.legend-bar { display: flex; gap: 12px; padding: 8px 14px; background: #fafaf7; border-top: 1px solid var(--border); }
-.leg { font-size: 10px; color: var(--sub); display: flex; align-items: center; gap: 4px; }
-.leg-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.leg-dot.top { background: #d4a017; }
-.leg-dot.low { background: #2ecc71; }
+.badge { font-size: 9px; font-weight: 800; border-radius: 4px; padding: 2px 6px; flex-shrink: 0; letter-spacing: 0.3px; }
+.badge.avail { background: #e7f9ef; color: #1a9c53; }
+.badge.sold { background: #fdecec; color: var(--sold); }
+.badge.inq { background: #fff5dc; color: #9a7a1e; }
 
-.no-res { text-align: center; color: #bbb; font-size: 13px; padding: 30px 16px; }
-
-.sched-wrap { padding: 12px; }
-.sched-title { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
-.wday { background: var(--card); border-radius: 8px; padding: 6px 4px; text-align: center; border: 1px solid var(--border); }
-.wday-name { font-size: 10px; font-weight: 700; color: var(--sub); }
-.wday.has-events { border-color: var(--gold); }
-.wpill { display: block; font-size: 7px; font-weight: 700; border-radius: 3px; padding: 2px 3px; margin-top: 3px; text-align: center; line-height: 1.2; }
-.wpill-xs { background: #1A1A2E; color: var(--gold); }
-.wpill-ebc { background: #0a4f3c; color: #7effd4; }
-.wpill-ebcn { background: #3d1a5e; color: #d4aaff; }
-.date-row { background: var(--card); border-radius: 10px; margin-bottom: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-.date-row.today { box-shadow: 0 0 0 2px var(--gold); }
-.dr-date { font-size: 12px; font-weight: 700; color: var(--text); flex-shrink: 0; width: 110px; }
-.dr-today { font-size: 10px; color: var(--gold); display: block; }
-.dr-venues { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.dr-row { display: flex; align-items: center; gap: 6px; }
-.dr-badge { font-size: 9px; font-weight: 700; border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
-.dr-badge.xs  { background: #1A1A2E; color: var(--gold); }
-.dr-badge.ebc { background: #0a4f3c; color: #7effd4; }
-.dr-badge.ebcn { background: #3d1a5e; color: #d4aaff; }
-.dr-artist { font-size: 12px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dr-arrow { font-size: 16px; color: #ccc; flex-shrink: 0; }
-.tap-hint { font-size: 11px; color: var(--sub); text-align: center; margin-bottom: 10px; }
+.state { text-align: center; padding: 60px 24px; color: var(--sub); font-size: 14px; }
+.state .big { font-size: 34px; margin-bottom: 12px; }
+.state button { margin-top: 14px; background: var(--dark); color: var(--gold); border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; margin: 0 auto 14px; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
-
 <div class="header">
   <div>
-    <div class="header-title">Wynn Nightlife</div>
-    <div class="header-sub" id="header-sub">VIP Table Pricing</div>
+    <div class="header-title">WYNN NIGHTLIFE — LIVE PRICING</div>
+    <div class="header-sub" id="updated">Loading…</div>
   </div>
+  <button class="refresh-btn" id="refreshBtn" onclick="load()">↻ Refresh</button>
 </div>
-
-<div class="venue-bar">
-  <button class="venue-btn active" onclick="switchVenue('xs',this)">XS<br>Nightclub</button>
-  <button class="venue-btn" onclick="switchVenue('ebc',this)">Encore<br>Beach Club</button>
-  <button class="venue-btn" onclick="switchVenue('ebcnight',this)">EBC<br>At Night</button>
-  <button class="venue-btn" onclick="switchVenue('schedule',this)">📅<br>Schedule</button>
-</div>
-
+<div class="venue-bar" id="venueBar"></div>
 <div class="controls">
-  <div class="search-wrap">
-    <input id="search-input" type="search" placeholder="Search artist or date…" oninput="onSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <span class="search-clear" id="search-clear" onclick="clearSearch()">✕</span>
-  </div>
+  <div class="search-wrap"><input id="search" type="search" placeholder="Search artist or table…" oninput="render()"></div>
 </div>
-<div class="filters">
-  <button class="qf active" onclick="setFilter('all',this)">All</button>
-  <button class="qf" onclick="setFilter('tonight',this)">Tonight</button>
-  <button class="qf" onclick="setFilter('weekend',this)">This Weekend</button>
-</div>
-
-<div class="panel active" id="panel-xs">
-  <div class="event-list" id="xs-list"></div>
-  <div class="no-res" id="xs-nores" style="display:none">No upcoming events</div>
-</div>
-<div class="panel" id="panel-ebc">
-  <div class="event-list" id="ebc-list"></div>
-  <div class="no-res" id="ebc-nores" style="display:none">No upcoming events</div>
-</div>
-<div class="panel" id="panel-ebcnight">
-  <div class="event-list" id="ebcnight-list"></div>
-  <div class="no-res" id="ebcnight-nores" style="display:none">No upcoming events</div>
-</div>
-<div class="panel" id="panel-schedule">
-  <div class="sched-wrap" id="sched-wrap"></div>
-</div>
+<div class="filters" id="filters"></div>
+<div id="content"><div class="state"><div class="spinner"></div>Fetching live prices…</div></div>
 
 <script>
-// ─── Apps Script endpoint ────────────────────────────────────────────────────
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3iSYTll2B-zuCVRUzQwkrCDrfyJ8lqC6ZnEfsnjUZ7zsFmDKmIA4GQ-3FcdKX-dY/exec';
+var DOGET_URL = 'https://script.google.com/macros/s/AKfycbz3iSYTll2B-zuCVRUzQwkrCDrfyJ8lqC6ZnEfsnjUZ7zsFmDKmIA4GQ-3FcdKX-dY/exec';
+var VENUES = ['XS Nightclub', 'Encore Beach Club', 'EBC At Night'];
+var MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var FILTERS = [
+  { id: 'all',   label: 'All' },
+  { id: 'avail', label: 'Available' },
+  { id: 'u2k',   label: 'Under $2k' },
+  { id: 'o5k',   label: '$5k+' }
+];
+var rows = [], activeVenue = VENUES[0], activeFilter = 'all';
 
-// ─── Hardcoded fallback data (current through Aug 2026) ──────────────────────
-const xsEvents=[{date:"Fri Jul 3",artist:"Its Murph",tables:[["Large Stage","$12,000","$2,410",15,false],["Owner\'s Table","$3,500","$710",15,false],["Large Side Stage Patio","$3,500","$710",10,false],["Premium Poolside Section","$3,000","$610",15,false],["Premium Dance Floor","$3,000","$610",12,false],["Dance Floor Section","$2,500","$510",12,false],["Poolside Section","$2,000","$410",12,false],["Small Side Stage Patio","$2,000","$410",6,false],["Lower Cabana","$1,500","$310",12,false],["Best Available","$1,000","$210",6,false],["Pool Deck/Lawn","$1,000","$210",6,false]]},{date:"Sat Jul 4",artist:"Mau P",tables:[["Large Stage","$18,000","$3,610",15,true],["Owner\'s Table","$12,000","$2,410",15,false],["Large Side Stage Patio","$6,000","$1,210",10,false],["Small Side Stage Patio","$3,500","$710",6,false],["Premium Poolside Section","$3,000","$610",15,false],["Dance Floor Section","$2,500","$510",12,true],["Poolside Section","$2,000","$410",12,false],["Lower Cabana","$1,500","$310",12,false],["Best Available","$1,000","$210",6,false],["Pool Deck/Lawn","$1,000","$210",6,false]]},{date:"Fri Jul 10",artist:"Kaskade",tables:[["Large Stage","$18,000","$3,610",15,true],["Owner\'s Table","$12,000","$2,410",15,false],["Premium Poolside Section","$6,000","$1,210",15,false],["Premium Dance Floor","$6,000","$1,210",12,false],["Large Side Stage Patio","$5,000","$1,010",10,false],["Dance Floor Section","$3,500","$710",12,false],["Poolside Section","$2,500","$510",12,false],["Small Side Stage Patio","$2,500","$510",6,false],["Lower Cabana","$2,000","$410",12,false],["Upper Cabana","$1,500","$310",10,false],["Best Available","$1,000","$210",6,false],["Pool Deck/Lawn","$1,000","$210",6,false]]},{date:"Sat Jul 11",artist:"Nelly - Live Performance",tables:[["Large Stage","$25,000","$5,010",15,false],["Owner\'s Table","$15,000","$3,010",15,false],["Premium Dance Floor","$12,000","$2,410",12,false],["Large Side Stage Patio","$10,000","$2,010",10,false],["Premium Poolside Section","$8,000","$1,610",15,false],["Dance Floor Section","$6,000","$1,210",12,false],["Small Side Stage Patio","$6,000","$1,210",6,false],["Poolside Section","$3,000","$610",12,false],["Lower Cabana","$2,500","$510",12,false],["Upper Cabana","$2,000","$410",10,false],["Pool Deck/Lawn","$1,500","$310",6,false],["Best Available","$1,000","$210",6,false]]},{date:"Fri Jul 17",artist:"Gryffin",tables:[["Large Stage","$15,000","$3,010",15,false],["Owner\'s Table","$8,000","$1,610",15,false],["Premium Dance Floor","$6,000","$1,210",12,false],["Large Side Stage Patio","$5,000","$1,010",10,false],["Premium Poolside Section","$3,500","$710",15,false],["Dance Floor Section","$2,500","$510",12,false],["Small Side Stage Patio","$2,500","$510",6,false],["Poolside Section","$2,000","$410",12,false],["Lower Cabana","$1,500","$310",12,false],["Best Available","$1,000","$210",6,false],["Pool Deck/Lawn","$1,000","$210",6,false]]},{date:"Sat Jul 18",artist:"ODESZA (DJ Set)",tables:[["Large Stage","$25,000","$5,010",15,false],["Owner\'s Table","$12,000","$2,410",15,false],["Large Side Stage Patio","$6,000","$1,210",10,false],["Premium Poolside Section","$5,000","$1,010",15,false],["Premium Dance Floor","$5,000","$1,010",12,false],["Dance Floor Section","$3,500","$710",12,false],["Small Side Stage Patio","$3,500","$710",6,false],["Poolside Section","$3,000","$610",12,false],["Lower Cabana","$2,500","$510",12,false],["Upper Cabana","$2,000","$410",10,false],["Pool Deck/Lawn","$1,500","$310",6,false],["Best Available","$1,000","$210",6,false]]},{date:"Fri Jul 24",artist:"deadmau5",tables:[["Large Stage","$18,000","$3,610",15,false],["Owner\'s Table","$12,000","$2,410",15,false],["Premium Poolside Section","$5,000","$1,010",15,false],["Premium Dance Floor","$5,000","$1,010",12,false],["Large Side Stage Patio","$5,000","$1,010",10,false],["Dance Floor Section","$3,500","$710",12,false],["Poolside Section","$2,500","$510",12,false],["Small Side Stage Patio","$2,500","$510",6,false],["Lower Cabana","$2,000","$410",12,false],["Upper Cabana","$1,500","$310",10,false],["Best Available","$1,000","$210",6,false],["Pool Deck/Lawn","$1,000","$210",6,false]]},{date:"Sat Jul 25",artist:"Diplo with Special Guest Charly Jordan",tables:[["Large Stage","$18,000","$3,610",15,false],["Owner\'s Table","$12,000","$2,410",15,false],["Premium Poolside Section","$5,000","$1,010",15,false],["Premium Dance Floor","$5,000","$1,010",12,false],["Large Side Stage Patio","$5,000","$1,010",10,false],["Dance Floor Section","$3,500","$710",12,false],["Poolside Section","$3,000","$610",12,false],["Lower Cabana","$2,500","$510",12,false],["Small Side Stage Patio","$2,500","$510",6,false],["Upper Cabana","$2,000","$410",10,false],["Pool Deck/Lawn","$1,500","$310",6,false],["Best Available","$1,000","$210",6,false]]},{date:"Fri Jul 31",artist:"Gryffin",tables:[["Large Stage","$12,000","$2,410",15,false],["Outside Owner\'s Table","$6,000","$1,210",15,false],["Large Side Stage Patio","$5,000","$1,010",10,false],["Premium Dance Floor","$3,500","$710",12,false],["Premium Poolside Section","$3,500","$710",10,false],["Dance Floor Section","$2,500","$510",12,false],["Small Side Stage Patio","$2,500","$510",6,false],["Poolside Section","$2,000","$410",12,false],["Lower Cabana","$1,500","$310",12,false],["Best Available","$1,000","$210",6,false],["Pool Deck/Lawn","$1,000","$210",6,false]]}];
-const ebcEvents=[{date:"Fri Jul 3",artist:"Gryffin",tables:[["Lower Bungalow","$15,000","$3,010",15,false],["Backstage Section","$15,000","$3,010",10,false],["Large Backstage Section","$5,000","$1,010",12,false],["Dance Floor Section","$3,500","$710",10,false],["Upper Bungalow","$3,500","$710",12,false],["Dancefloor Water Couch","$3,500","$710",10,false],["Water Couch","$3,000","$610",10,false],["Lower Cabana","$3,000","$610",12,false],["Center L Couch","$2,500","$510",6,false],["Center Pool Lily Pad","$2,500","$510",8,false],["Upper Cabana","$2,500","$510",10,false],["Medium Backstage Section","$2,500","$510",8,false],["L Couch","$2,000","$410",8,false],["Lily Pad","$1,500","$310",6,false],["Gaming Section","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Sat Jul 4",artist:"Hugel",tables:[["Backstage Section","$20,000","$4,010",10,false],["Lower Bungalow","$18,000","$3,610",15,false],["Dance Floor Section","$10,000","$2,010",10,false],["Dancefloor Water Couch","$8,000","$1,610",10,false],["Upper Bungalow","$7,000","$1,410",12,false],["Large Backstage Section","$7,000","$1,410",12,false],["Water Couch","$6,000","$1,210",10,false],["Lower Cabana","$6,000","$1,210",12,false],["Center L Couch","$4,000","$810",8,false],["Center Pool Lily Pad","$4,000","$810",8,false],["Upper Cabana","$3,500","$710",10,false],["L Couch","$3,000","$610",8,false],["Gaming Section","$2,500","$510",6,false],["Daybed","$2,500","$510",8,false],["Lily Pad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false]]},{date:"Sun Jul 5",artist:"Dillon Francis with Special Guest VAVO",tables:[["Backstage Section","$10,000","$2,010",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Dance Floor Section","$3,500","$710",10,false],["Dancefloor Water Couch","$3,500","$710",10,false],["Large Backstage Section","$3,500","$710",12,false],["Water Couch","$3,000","$610",10,false],["Lower Cabana","$2,500","$510",12,false],["Medium Backstage Section","$2,500","$510",8,false],["Center L Couch","$2,000","$410",8,false],["Center Pool Lily Pad","$2,000","$410",8,false],["L Couch","$1,500","$310",8,false],["Gaming Section","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Fri Jul 10",artist:"Two Friends",tables:[["Backstage Section","$10,000","$2,010",10,false],["Lower Bungalow","$8,000","$1,610",15,true],["Dance Floor Section","$3,500","$710",10,false],["Water Couch","$3,500","$710",10,true],["Upper Bungalow","$3,500","$710",12,false],["Large Backstage Section","$3,500","$710",12,false],["Lower Cabana","$3,000","$610",12,false],["Dancefloor Water Couch","$3,000","$610",10,false],["Medium Backstage Section","$2,500","$510",8,false],["Center L Couch","$2,000","$410",8,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Upper Cabana","$2,000","$410",10,false],["L Couch","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Gaming Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false]]},{date:"Sat Jul 11",artist:"The Chainsmokers",tables:[["Backstage Section","$25,000","$5,010",10,false],["Lower Bungalow","$20,000","$4,010",15,false],["Dance Floor Section","$12,000","$2,410",10,false],["Lower Cabana","$10,000","$2,010",12,false],["Dancefloor Water Couch","$8,000","$1,610",10,false],["Large Backstage Section","$8,000","$1,610",12,false],["Water Couch","$7,000","$1,410",10,false],["Upper Bungalow","$7,000","$1,410",12,false],["Center L Couch","$4,000","$810",8,false],["Center Pool Lily Pad","$3,500","$710",8,false],["Upper Cabana","$3,500","$710",10,false],["L Couch","$3,000","$610",8,false],["Gaming Section","$3,000","$610",6,false],["Daybed","$2,500","$510",8,false],["Lily Pad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false]]},{date:"Sun Jul 12",artist:"Diplo",tables:[["Backstage Section","$15,000","$3,010",10,false],["Lower Bungalow","$12,000","$2,410",15,false],["Large Backstage Section","$6,000","$1,210",12,false],["Dance Floor Section","$4,000","$810",10,false],["Dancefloor Water Couch","$3,500","$710",10,false],["Water Couch","$3,000","$610",10,false],["Lower Cabana","$3,000","$610",12,false],["Medium Backstage Section","$3,000","$610",8,false],["Center L Couch","$2,500","$510",8,false],["L Couch","$2,000","$410",8,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Gaming Section","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Fri Jul 17",artist:"Its Murph",tables:[["Backstage Section","$15,000","$3,010",10,false],["Lower Bungalow","$8,000","$1,610",15,false],["Dance Floor Section","$5,000","$1,010",10,false],["Dancefloor Water Couch","$5,000","$1,010",10,false],["Large Backstage Section","$5,000","$1,010",12,false],["Water Couch","$3,500","$710",10,false],["Upper Bungalow","$3,500","$710",12,false],["Lower Cabana","$3,000","$610",12,false],["Center L Couch","$2,500","$510",6,false],["Center Pool Lily Pad","$2,500","$510",8,false],["Upper Cabana","$2,500","$510",10,false],["Medium Backstage Section","$2,500","$510",8,false],["L Couch","$2,000","$410",8,false],["Gaming Section","$2,000","$410",6,false],["Daybed","$2,000","$410",8,false],["Lily Pad","$1,500","$310",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Sat Jul 18",artist:"Marshmello",tables:[["Backstage Section","$25,000","$5,010",10,false],["Lower Bungalow","$18,000","$3,610",15,false],["Dance Floor Section","$10,000","$2,010",10,false],["Large Backstage Section","$10,000","$2,010",12,false],["Dancefloor Water Couch","$8,000","$1,610",10,false],["Lower Cabana","$7,000","$1,410",12,false],["Upper Bungalow","$7,000","$1,410",12,false],["Water Couch","$6,000","$1,210",10,false],["Center L Couch","$5,000","$1,010",6,false],["Medium Backstage Section","$5,000","$1,010",8,false],["L Couch","$3,500","$710",8,false],["Center Pool Lily Pad","$3,500","$710",8,false],["Upper Cabana","$3,500","$710",10,false],["Gaming Section","$3,000","$610",6,false],["Daybed","$3,000","$610",8,false],["Lily Pad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false]]},{date:"Sun Jul 19",artist:"BUNT.",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Dance Floor Section","$3,000","$610",10,false],["Dancefloor Water Couch","$3,000","$610",10,false],["Large Backstage Section","$3,000","$610",12,false],["Water Couch","$2,500","$510",10,false],["Lower Cabana","$2,500","$510",12,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Gaming Section","$2,000","$410",6,false],["L Couch","$1,500","$310",8,false],["Daybed","$1,500","$310",8,false],["Medium Backstage Section","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Fri Jul 24",artist:"Bob Moses (Club Set)",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Dance Floor Section","$3,500","$710",10,false],["Upper Bungalow","$3,500","$710",12,false],["Large Backstage Section","$3,500","$710",12,false],["Dancefloor Water Couch","$3,500","$710",10,false],["Water Couch","$3,000","$610",10,false],["Lower Cabana","$3,000","$610",12,false],["Upper Cabana","$2,500","$510",10,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Gaming Section","$2,000","$410",6,false],["L Couch","$1,500","$310",8,false],["Lily Pad","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Sat Jul 25",artist:"ODESZA (DJ Set)",tables:[["Backstage Section","$35,000","$7,010",10,false],["Lower Bungalow","$30,000","$6,010",15,false],["Dance Floor Section","$10,000","$2,010",10,false],["Large Backstage Section","$10,000","$2,010",12,false],["Lower Cabana","$8,000","$1,610",12,false],["Upper Bungalow","$8,000","$1,610",12,false],["Dancefloor Water Couch","$8,000","$1,610",10,false],["Water Couch","$7,000","$1,410",10,false],["Center L Couch","$5,000","$1,010",6,false],["Center Pool Lily Pad","$5,000","$1,010",8,false],["Medium Backstage Section","$5,000","$1,010",8,false],["Upper Cabana","$4,000","$810",10,false],["L Couch","$3,500","$710",8,false],["Gaming Section","$3,000","$610",6,false],["Daybed","$3,000","$610",8,false],["Lily Pad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false]]},{date:"Sun Jul 26",artist:"Sullivan King with Special Guest Bella Hue",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Rage Nation Package","$6,500","$1,310",5,false],["Headlock Package","$3,000","$610",5,false],["Dance Floor Section","$3,000","$610",10,false],["Large Backstage Section","$3,000","$610",12,false],["Dancefloor Water Couch","$3,000","$610",10,false],["Water Couch","$2,500","$510",10,false],["Lower Cabana","$2,500","$510",12,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Gaming Section","$2,000","$410",6,false],["Medium Backstage Section","$2,000","$410",8,false],["L Couch","$1,500","$310",8,false],["Daybed","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Fri Jul 31",artist:"AYYBO",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Dance Floor Section","$3,500","$710",10,false],["Upper Bungalow","$3,500","$710",12,false],["Large Backstage Section","$3,500","$710",12,false],["Lower Cabana","$3,000","$610",12,false],["Dancefloor Water Couch","$3,000","$610",10,false],["Water Couch","$2,500","$510",10,false],["Upper Cabana","$2,500","$510",10,false],["Medium Backstage Section","$2,500","$510",8,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["L Couch","$1,500","$310",8,false],["Lily Pad","$1,500","$310",6,false],["Gaming Section","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Sat Aug 1",artist:"The Chainsmokers",tables:[["Backstage Section","$30,000","$6,010",10,false],["Lower Bungalow","$25,000","$5,010",15,false],["Dance Floor Section","$10,000","$2,010",10,false],["Water Couch","$10,000","$2,010",10,false],["Large Backstage Section","$10,000","$2,010",12,false],["Dancefloor Water Couch","$8,000","$1,610",10,false],["Lower Cabana","$7,000","$1,410",12,false],["Upper Bungalow","$7,000","$1,410",12,false],["Center L Couch","$5,000","$1,010",6,false],["Medium Backstage Section","$5,000","$1,010",8,false],["Upper Cabana","$4,000","$810",10,false],["L Couch","$3,500","$710",8,false],["Center Pool Lily Pad","$3,500","$710",8,false],["Gaming Section","$3,000","$610",6,false],["Daybed","$3,000","$610",8,false],["Lily Pad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false]]},{date:"Sun Aug 2",artist:"Altura Presents Latin Day Swim",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Dance Floor Section","$3,000","$610",10,false],["Large Backstage Section","$3,000","$610",12,false],["Dancefloor Water Couch","$3,000","$610",10,false],["Water Couch","$2,500","$510",10,false],["Lower Cabana","$2,500","$510",12,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Gaming Section","$2,000","$410",6,false],["Medium Backstage Section","$2,000","$410",8,false],["L Couch","$1,500","$310",8,false],["Daybed","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Fri Aug 7",artist:"Knolldoll",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$8,000","$1,610",15,false],["Dance Floor Section","$3,500","$710",10,false],["Upper Bungalow","$3,500","$710",12,false],["Large Backstage Section","$3,500","$710",12,false],["Dancefloor Water Couch","$3,500","$710",10,false],["Water Couch","$3,000","$610",10,false],["Lower Cabana","$3,000","$610",12,false],["Upper Cabana","$2,500","$510",10,false],["Medium Backstage Section","$2,500","$510",8,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["L Couch","$1,500","$310",8,false],["Lily Pad","$1,500","$310",6,false],["Gaming Section","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]},{date:"Sat Aug 8",artist:"Hugel",tables:[["Backstage Section","$30,000","$6,010",10,false],["Lower Bungalow","$25,000","$5,010",15,false],["Dance Floor Section","$10,000","$2,010",10,false],["Large Backstage Section","$10,000","$2,010",12,false],["Water Couch","$8,000","$1,610",10,false],["Lower Cabana","$8,000","$1,610",12,false],["Upper Bungalow","$8,000","$1,610",12,false],["Dancefloor Water Couch","$8,000","$1,610",10,false],["Center L Couch","$5,000","$1,010",6,false],["Medium Backstage Section","$5,000","$1,010",8,false],["Upper Cabana","$4,000","$810",10,false],["L Couch","$3,500","$710",8,false],["Center Pool Lily Pad","$3,500","$710",8,false],["Gaming Section","$3,000","$610",6,false],["Daybed","$3,000","$610",8,false],["Lily Pad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false]]},{date:"Sun Aug 9",artist:"Dillon Francis",tables:[["Backstage Section","$12,000","$2,410",10,false],["Lower Bungalow","$7,000","$1,410",15,false],["Dance Floor Section","$3,000","$610",10,false],["Large Backstage Section","$3,000","$610",12,false],["Dancefloor Water Couch","$3,000","$610",10,false],["Water Couch","$2,500","$510",10,false],["Lower Cabana","$2,500","$510",12,false],["Center L Couch","$2,000","$410",6,false],["Center Pool Lily Pad","$2,000","$410",8,false],["Gaming Section","$2,000","$410",6,false],["Medium Backstage Section","$2,000","$410",8,false],["L Couch","$1,500","$310",8,false],["Daybed","$1,500","$310",8,false],["Lily Pad","$1,000","$210",6,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false]]}];
-const ebcNightEvents=[{date:"Wed Jul 1",artist:"AYYBO",tables:[["Stage Section","$10,000","$2,010",6,false],["Lower Bungalow","$5,000","$1,010",15,false],["Dance Floor Section","$2,500","$510",10,false],["Dance Floor Water Couch","$2,500","$510",10,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Lower Cabana","$2,000","$410",12,false],["Center L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Sat Jul 4",artist:"Subtronics",tables:[["Infinity Package","$7,500","$1,510",12,false],["Dance Floor Section","$5,000","$1,010",10,true],["Lower Bungalow","$5,000","$1,010",15,false],["Premium Platform Section","$3,500","$710",10,false],["Cyclops Package","$3,000","$610",8,false],["Front Platform Section","$3,000","$610",8,false],["Lower Cabana","$2,500","$510",12,false],["Platform Section","$2,500","$510",8,false],["Center L Couch Section","$2,000","$410",8,false],["Gaming Section","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Wed Jul 8",artist:"Odd Mob",tables:[["Stage Section","$10,000","$2,010",6,false],["Lower Bungalow","$5,000","$1,010",15,false],["Large Backstage Section","$3,000","$610",12,false],["Dance Floor Section","$2,500","$510",10,false],["Dance Floor Water Couch","$2,500","$510",10,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Lower Cabana","$2,000","$410",12,false],["Center L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Thu Jul 9",artist:"Altura Presents Latin Night Swim",tables:[["Dance Floor Section","$5,000","$1,010",10,false],["Lower Bungalow","$5,000","$1,010",15,false],["Dance Floor Water Couch","$3,500","$710",10,false],["Large Backstage Section","$3,000","$610",12,false],["Center L Couch Section","$2,000","$410",8,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Lower Cabana","$2,000","$410",12,false],["L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Sat Jul 11",artist:"Conor McGregor After Fight Party",tables:[["Stage Section","$30,000","$6,010",6,true],["Dance Floor Section","$18,000","$3,610",10,false],["Premium Platform Section","$15,000","$3,010",10,false],["Large Backstage Section","$12,000","$2,410",12,false],["Lower Bungalow","$12,000","$2,410",15,false],["Medium Backstage Section","$7,000","$1,410",8,false],["Front Platform Section","$7,000","$1,410",8,false],["Upper Bungalow","$6,000","$1,210",12,false],["Platform Section","$6,000","$1,210",8,false],["Lower Cabana","$5,000","$1,010",12,false],["Center L Couch Section","$3,500","$710",8,false],["Gaming Section","$2,500","$510",8,false],["Upper Cabana","$2,000","$410",10,false],["L Couch Section","$2,000","$410",8,false],["Lilypad","$1,500","$310",6,false],["Daybed","$1,500","$310",8,false],["Patio Section","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Wed Jul 15",artist:"Two Friends with Special Guest Charly Jordan",tables:[["Stage Section","$12,000","$2,410",6,false],["Dance Floor Section","$8,000","$1,610",10,false],["Lower Bungalow","$5,000","$1,010",15,false],["Large Backstage Section","$3,000","$610",12,false],["Dance Floor Water Couch","$3,000","$610",10,false],["Lower Cabana","$2,500","$510",12,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Center L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Wed Jul 22",artist:"Dillon Francis",tables:[["Stage Section","$12,000","$2,410",6,false],["Lower Bungalow","$5,000","$1,010",15,false],["Dance Floor Section","$3,500","$710",10,false],["Large Backstage Section","$3,000","$610",12,false],["Dance Floor Water Couch","$3,000","$610",10,false],["Water Couch","$2,500","$510",10,false],["Lower Cabana","$2,500","$510",12,false],["Medium Backstage Section","$2,000","$410",8,false],["Center L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Sat Jul 25",artist:"Slander",tables:[["Stage Section","$12,000","$2,410",6,false],["Large Backstage Section","$5,000","$1,010",12,false],["Lower Bungalow","$5,000","$1,010",15,false],["Dance Floor Section","$3,500","$710",10,false],["Dance Floor Water Couch","$3,000","$610",10,false],["Medium Backstage Section","$2,500","$510",8,false],["Lower Cabana","$2,500","$510",12,false],["Center Pool Lilypad","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Center L Couch Section","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Wed Jul 29",artist:"HNTR",tables:[["Stage Section","$12,000","$2,410",6,false],["Lower Bungalow","$5,000","$1,010",15,false],["Large Backstage Section","$3,000","$610",12,false],["Dance Floor Water Couch","$3,000","$610",10,false],["Dance Floor Section","$2,500","$510",10,false],["Lower Cabana","$2,500","$510",12,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Center L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["L Couch Section","$1,000","$210",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Sat Aug 1",artist:"Diplo",tables:[["Stage Section","$18,000","$3,610",6,false],["Dance Floor Section","$12,000","$2,410",10,false],["Lower Bungalow","$12,000","$2,410",15,false],["Upper Bungalow","$7,000","$1,410",12,false],["Large Backstage Section","$7,000","$1,410",12,false],["Center L Couch Section","$6,000","$1,210",8,false],["Dance Floor Water Couch","$6,000","$1,210",10,false],["Medium Backstage Section","$5,000","$1,010",8,false],["Water Couch","$5,000","$1,010",10,false],["Lower Cabana","$5,000","$1,010",12,false],["Upper Cabana","$4,000","$810",10,false],["Center Pool Lilypad","$3,500","$710",8,false],["L Couch Section","$2,500","$510",8,false],["Gaming Section","$2,500","$510",8,false],["Lilypad","$2,000","$410",6,false],["Daybed","$2,000","$410",8,false],["Beach Couch","$1,500","$310",6,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Wed Aug 5",artist:"Odd Mob",tables:[["Stage Section","$7,000","$1,410",6,false],["Dance Floor Section","$5,000","$1,010",10,false],["Lower Bungalow","$5,000","$1,010",15,false],["Dance Floor Water Couch","$5,000","$1,010",10,false],["Large Backstage Section","$3,000","$610",12,false],["Center L Couch Section","$2,000","$410",8,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Lower Cabana","$2,000","$410",12,false],["L Couch Section","$1,500","$310",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Fri Aug 7",artist:"Gryffin",tables:[["Stage Section","$18,000","$3,610",6,false],["Dance Floor Section","$10,000","$2,010",10,false],["Lower Bungalow","$8,000","$1,610",15,false],["Large Backstage Section","$7,000","$1,410",12,false],["Upper Bungalow","$6,000","$1,210",12,false],["Dance Floor Water Couch","$6,000","$1,210",10,false],["Center L Couch Section","$5,000","$1,010",8,false],["Medium Backstage Section","$5,000","$1,010",8,false],["Water Couch","$5,000","$1,010",10,false],["Gaming Section","$4,000","$810",8,false],["L Couch Section","$3,500","$710",8,false],["Lower Cabana","$3,500","$710",12,false],["Daybed","$3,000","$610",8,false],["Upper Cabana","$2,500","$510",10,false],["Center Pool Lilypad","$2,500","$510",8,false],["Lilypad","$2,000","$410",6,false],["Beach Couch","$2,000","$410",6,false],["Patio Section","$1,500","$310",6,false],["Best Available Section","$1,000","$210",6,false]]},{date:"Sat Aug 8",artist:"Kaskade",tables:[["Stage Section","$18,000","$3,610",6,false],["Dance Floor Section","$12,000","$2,410",10,false],["Lower Bungalow","$12,000","$2,410",15,false],["Dance Floor Water Couch","$10,000","$2,010",10,false],["Upper Bungalow","$7,000","$1,410",12,false],["Large Backstage Section","$7,000","$1,410",12,false],["Lower Cabana","$6,000","$1,210",12,false],["Medium Backstage Section","$5,000","$1,010",8,false],["Water Couch","$5,000","$1,010",10,false],["Center L Couch Section","$3,500","$710",8,false],["Center Pool Lilypad","$3,500","$710",8,false],["Upper Cabana","$2,500","$510",10,false],["L Couch Section","$2,500","$510",8,false],["Lilypad","$2,500","$510",6,false],["Daybed","$2,000","$410",8,false],["Gaming Section","$2,000","$410",8,false],["Patio Section","$1,500","$310",6,false],["Beach Couch","$1,500","$310",6,false],["Best Available Section","$1,500","$310",6,false]]},{date:"Wed Aug 12",artist:"Acraze",tables:[["Stage Section","$7,000","$1,410",6,false],["Dance Floor Section","$5,000","$1,010",10,false],["Lower Bungalow","$5,000","$1,010",15,false],["Dance Floor Water Couch","$3,500","$710",10,false],["Large Backstage Section","$3,000","$610",12,false],["Center L Couch Section","$2,000","$410",8,false],["Medium Backstage Section","$2,000","$410",8,false],["Water Couch","$2,000","$410",10,false],["Lower Cabana","$2,000","$410",12,false],["L Couch Section","$1,500","$310",8,false],["Center Pool Lilypad","$1,500","$310",8,false],["Lilypad","$1,000","$210",6,false],["Beach Couch","$1,000","$210",6,false],["Daybed","$1,000","$210",8,false],["Gaming Section","$1,000","$210",8,false],["Best Available Section","$1,000","$210",6,false]]}];
+function money(s) { var n = parseInt(String(s || '').replace(/[$,]/g, ''), 10); return isNaN(n) ? 0 : n; }
 
-// ─── Utility ─────────────────────────────────────────────────────────────────
-const MONTHS={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-function parseDate(s){const m=s.match(/(\w{3})\s+(\d+)/);return m?new Date(2026,MONTHS[m[1]],parseInt(m[2])):null;}
-function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
-function dateKey(d){return d?d.toISOString().slice(0,10):'';}
-function parseFab(s){const m=String(s).replace(/,/g,'').match(/\d+/);return m?parseInt(m[0]):-1;}
-
-// ─── Render helpers ───────────────────────────────────────────────────────────
-function buildRows(tables){
-  // Only consider available tables for hi/lo pricing indicators
-  const avail=tables.filter(r=>!r[4]);
-  const prices=avail.map(r=>parseFab(r[1]));
-  const valid=prices.filter(p=>p>0);
-  const maxP=valid.length?Math.max(...valid):-1;
-  const minP=valid.length?Math.min(...valid):-1;
-  return tables.map(([name,fab,deposit,guests,sold])=>{
-    const p=parseFab(fab);
-    const isTop=!sold&&p===maxP&&maxP>0;
-    const isLow=!sold&&p===minP&&minP>0&&minP!==maxP;
-    const cls=(sold?' sold-row':isTop?' top-row':isLow?' low-row':'');
-    const badge=isTop?'★':isLow?'↓':'';
-    const dep=sold?'<span style="color:#aaa">Sold Out</span>':deposit?`Pay Now: <b>${deposit}</b>`:`Inquiry Only`;
-    const cap=guests?` · ${guests} guests`:'';
-    const soldTag=sold?'<span class="sold-badge">SOLD</span>':'';
-    return `<div class="trow${cls}"><div class="trow-name">${name}${soldTag}<div class="trow-sub">${dep}${cap}</div></div><div class="trow-prices"><div class="trow-fab${sold?' sold-price':''}">${fab}</div><div class="trow-deposit">F&amp;B min</div></div><div class="trow-badge">${badge}</div></div>`;
-  }).join('')+`<div class="legend-bar"><span class="leg"><span class="leg-dot top"></span>★ Highest</span><span class="leg"><span class="leg-dot low"></span>↓ Lowest</span></div>`;
+function eventDate(dateStr) { // "Thu Jun 26" -> Date (year inferred)
+  var p = String(dateStr).trim().split(' ');
+  if (p.length < 3) return null;
+  var m = MTHS.indexOf(p[1]), d = parseInt(p[2], 10), now = new Date();
+  if (m === -1 || isNaN(d)) return null;
+  var y = now.getFullYear();
+  if (m < now.getMonth() - 3) y++;
+  return new Date(y, m, d);
 }
 
-function toggleCard(hd){
-  const body=hd.nextElementSibling,card=hd.parentElement;
-  if(!body.dataset.loaded){
-    const vk=card.dataset.venue,idx=parseInt(card.dataset.idx);
-    const src=vk==='xs'?currentXs:vk==='ebc'?currentEbc:currentEbcNight;
-    body.innerHTML=buildRows(src[idx].tables);
-    body.dataset.loaded='1';
-  }
-  const open=body.classList.toggle('open');
-  hd.querySelector('.event-arrow').classList.toggle('open',open);
-}
-
-function nextIdx(events){
-  const t=today();
-  for(let i=0;i<events.length;i++){const d=parseDate(events[i].date);if(d&&d>=t)return i;}
-  return -1;
-}
-
-function buildList(events,containerId,noresId,vk,venueName){
-  const nx=nextIdx(events);
-  document.getElementById(containerId).innerHTML=events.map((ev,i)=>{
-    const d=parseDate(ev.date),isNext=i===nx;
-    return `<div class="event-card${isNext?' next-card':''}" id="ecard-${vk}-${i}" data-venue="${vk}" data-idx="${i}" data-search="${(ev.artist+' '+ev.date).toLowerCase()}" data-date-obj="${dateKey(d)}"><div class="event-hd" onclick="toggleCard(this)"><div class="event-info"><div class="event-artist">${ev.artist}${isNext?'<span class="next-pill">NEXT UP</span>':''}</div><div class="event-meta">${ev.date} · ${venueName}</div></div><span class="event-arrow">▾</span></div><div class="event-body"></div></div>`;
-  }).join('');
-  if(nx>=0){const c=document.getElementById(`ecard-${vk}-${nx}`);if(c){toggleCard(c.querySelector('.event-hd'));setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),100);}}
-}
-
-// ─── Filter state ─────────────────────────────────────────────────────────────
-let curFilter='all', curSearch='';
-
-function onSearch(val){curSearch=val.trim().toLowerCase();document.getElementById('search-clear').style.display=val?'block':'none';applyFilters();}
-function clearSearch(){document.getElementById('search-input').value='';onSearch('');}
-function setFilter(f,btn){curFilter=f;document.querySelectorAll('.qf').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
-
-function applyFilters(){
-  const t=today();
-  const todayKey=dateKey(t);
-  const wknd=new Set();
-  for(let i=0;i<7;i++){const d=new Date(t);d.setDate(t.getDate()+i);if([0,5,6].includes(d.getDay()))wknd.add(dateKey(d));}
-
-  ['xs','ebc','ebcnight'].forEach(vk=>{
-    let vis=0;
-    document.querySelectorAll(`#panel-${vk} .event-card`).forEach(card=>{
-      // Always hide past events
-      const dateObj=card.dataset.dateObj;
-      let show=!dateObj||dateObj>=todayKey;
-      // Apply search
-      if(show&&curSearch)show=card.dataset.search.includes(curSearch);
-      // Apply quick filters
-      if(show&&curFilter==='tonight')show=dateObj===todayKey;
-      if(show&&curFilter==='weekend')show=wknd.has(dateObj);
-      card.style.display=show?'':'none';
-      if(show)vis++;
+function load() {
+  var btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  document.getElementById('content').innerHTML = '<div class="state"><div class="spinner"></div>Fetching live prices…</div>';
+  fetch(DOGET_URL)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data) {
+      rows = data;
+      var latest = '';
+      rows.forEach(function(r) { var u = String(r.Last_Updated || ''); if (u > latest) latest = u; });
+      document.getElementById('updated').textContent = latest ? 'Data updated ' + latest + ' PT' : 'Live from Google Sheet';
+      btn.disabled = false;
+      buildVenueBar(); buildFilters(); render();
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      document.getElementById('updated').textContent = 'Connection error';
+      document.getElementById('content').innerHTML =
+        '<div class="state"><div class="big">⚠️</div>Could not load pricing data.<br>' +
+        '<span style="font-size:12px">' + err.message + '</span><br>' +
+        '<button onclick="load()">Try Again</button></div>';
     });
-    document.getElementById(`${vk}-nores`).style.display=vis?'none':'block';
+}
+
+function buildVenueBar() {
+  var bar = document.getElementById('venueBar');
+  bar.innerHTML = '';
+  VENUES.forEach(function(v) {
+    var count = rows.filter(function(r) { return r.Venue === v; }).length;
+    var b = document.createElement('button');
+    b.className = 'venue-btn' + (v === activeVenue ? ' active' : '');
+    b.innerHTML = v.replace('Encore Beach Club', 'EBC').replace('EBC At Night', 'EBC NIGHT').toUpperCase() + '<br>' + count + ' tables';
+    b.onclick = function() { activeVenue = v; buildVenueBar(); render(); };
+    bar.appendChild(b);
   });
 }
 
-// ─── Venue switcher ───────────────────────────────────────────────────────────
-function switchVenue(vk,btn){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.venue-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('panel-'+vk).classList.add('active');
-  btn.classList.add('active');
+function buildFilters() {
+  var f = document.getElementById('filters');
+  f.innerHTML = '';
+  FILTERS.forEach(function(fl) {
+    var b = document.createElement('button');
+    b.className = 'qf' + (fl.id === activeFilter ? ' active' : '');
+    b.textContent = fl.label;
+    b.onclick = function() { activeFilter = fl.id; buildFilters(); render(); };
+    f.appendChild(b);
+  });
 }
 
-function jumpToEvent(vk,idx){
-  const btnMap={xs:0,ebc:1,ebcnight:2};
-  switchVenue(vk,document.querySelectorAll('.venue-btn')[btnMap[vk]]);
-  setTimeout(()=>{
-    const c=document.getElementById(`ecard-${vk}-${idx}`);
-    if(!c)return;
-    c.scrollIntoView({behavior:'smooth',block:'start'});
-    const body=c.querySelector('.event-body');
-    if(!body.classList.contains('open'))toggleCard(c.querySelector('.event-hd'));
-  },60);
+function passFilter(r) {
+  var fab = money(r.FAB_Min);
+  if (activeFilter === 'avail') return r.Status === 'Available';
+  if (activeFilter === 'u2k') return r.Status === 'Available' && fab > 0 && fab < 2000;
+  if (activeFilter === 'o5k') return r.Status === 'Available' && fab >= 5000;
+  return true;
 }
 
-// ─── Schedule view ────────────────────────────────────────────────────────────
-function buildSchedule(){
-  const DAY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const patterns=[
-    {key:'xs',   label:'XS',       cls:'wpill-xs',   days:[5,6]},
-    {key:'ebc',  label:'EBC',      cls:'wpill-ebc',  days:[5,6,0]},
-    {key:'ebcn', label:'EBC Night',cls:'wpill-ebcn', days:[3,6]},
-  ];
-  let html=`<div class="sched-title">Weekly Pattern</div><div class="week-grid">`;
-  DAY.forEach((name,i)=>{
-    const vs=patterns.filter(p=>p.days.includes(i));
-    html+=`<div class="wday${vs.length?' has-events':''}"><div class="wday-name">${name}</div>`;
-    vs.forEach(p=>html+=`<span class="wpill ${p.cls}">${p.label}</span>`);
-    html+='</div>';
+function render() {
+  var q = document.getElementById('search').value.toLowerCase().trim();
+  var subset = rows.filter(function(r) {
+    if (r.Venue !== activeVenue || !passFilter(r)) return false;
+    if (q && String(r.Artist).toLowerCase().indexOf(q) === -1 &&
+        String(r.Table).toLowerCase().indexOf(q) === -1) return false;
+    return true;
   });
-  html+='</div>';
 
-  const dateMap={};
-  const add=(evts,vk,cls)=>evts.forEach((ev,idx)=>{
-    const d=parseDate(ev.date);if(!d)return;
-    const k=dateKey(d);
-    if(!dateMap[k])dateMap[k]={d,items:[]};
-    dateMap[k].items.push({vk,idx,cls,artist:ev.artist});
+  var byDate = {};
+  subset.forEach(function(r) {
+    var k = String(r.Date);
+    (byDate[k] = byDate[k] || []).push(r);
   });
-  add(currentXs,'xs','xs');
-  add(currentEbc,'ebc','ebc');
-  add(currentEbcNight,'ebcnight','ebcn');
-
-  const t=today();
-  html+=`<div class="sched-title" style="margin-top:16px">45-Day Schedule</div><div class="tap-hint">Tap a date to jump to pricing</div>`;
-  Object.keys(dateMap).sort().forEach(k=>{
-    const{d,items}=dateMap[k];
-    if(d<t)return; // skip past dates
-    const isToday=dateKey(d)===dateKey(t);
-    const label=`${FULL[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`;
-    const venueRows=items.map(it=>`<div class="dr-row"><span class="dr-badge ${it.cls}">${it.cls==='xs'?'XS':it.cls==='ebc'?'EBC':'EBC Night'}</span><span class="dr-artist">${it.artist}</span></div>`).join('');
-    html+=`<div class="date-row${isToday?' today':''}" onclick="jumpToEvent('${items[0].vk}',${items[0].idx})"><div class="dr-date">${label}${isToday?'<span class="dr-today">Today</span>':''}</div><div class="dr-venues">${venueRows}</div><div class="dr-arrow">›</div></div>`;
+  var dates = Object.keys(byDate).sort(function(a, b) {
+    return (eventDate(a) || 0) - (eventDate(b) || 0);
   });
-  document.getElementById('sched-wrap').innerHTML=html;
-}
 
-// ─── Live data fetch (replaces fallback if sheet has data) ────────────────────
-async function loadLiveData(){
-  try{
-    const res=await fetch(SCRIPT_URL);
-    if(!res.ok)return;
-    const rows=await res.json();
-    if(!Array.isArray(rows)||rows.length===0)return;
-
-    const vm={'XS Nightclub':'xs','Encore Beach Club':'ebc','EBC At Night':'ebcnight'};
-    const groups={};
-    rows.forEach(r=>{
-      const vk=vm[r.venue];
-      if(!vk||!r.date||!r.table)return;
-      const key=`${vk}|${r.date}`;
-      if(!groups[key])groups[key]={vk,date:r.date,artist:r.artist||'To Be Announced',tables:[]};
-      const g=parseInt(r.guests)||null;
-      groups[key].tables.push([r.table,r.fabMin,r.payNow||null,g]);
-    });
-
-    const live={xs:[],ebc:[],ebcnight:[]};
-    Object.values(groups).forEach(g=>live[g.vk].push({date:g.date,artist:g.artist,tables:g.tables}));
-    ['xs','ebc','ebcnight'].forEach(vk=>live[vk].sort((a,b)=>{
-      const da=parseDate(a.date),db=parseDate(b.date);
-      return (da?da.getTime():0)-(db?db.getTime():0);
-    }));
-
-    // Only replace fallback if live data has something
-    if(live.xs.length){currentXs=live.xs;buildList(live.xs,'xs-list','xs-nores','xs','XS Nightclub');}
-    if(live.ebc.length){currentEbc=live.ebc;buildList(live.ebc,'ebc-list','ebc-nores','ebc','Encore Beach Club');}
-    if(live.ebcnight.length){currentEbcNight=live.ebcnight;buildList(live.ebcnight,'ebcnight-list','ebcnight-nores','ebcnight','EBC At Night');}
-    if(live.xs.length||live.ebc.length||live.ebcnight.length){
-      buildSchedule();
-      document.getElementById('header-sub').textContent='VIP Table Pricing · Live';
-    }
-    applyFilters();
-  }catch(e){
-    // Silent fail — fallback data is already showing
+  var c = document.getElementById('content');
+  if (!dates.length) {
+    c.innerHTML = '<div class="state"><div class="big">🔍</div>No tables match.</div>';
+    return;
   }
+
+  var today = new Date(); today.setHours(0,0,0,0);
+  var nextIdx = -1;
+  for (var i = 0; i < dates.length; i++) {
+    var ed = eventDate(dates[i]);
+    if (ed && ed >= today) { nextIdx = i; break; }
+  }
+
+  var html = '<div class="event-list">';
+  dates.forEach(function(dt, idx) {
+    var list = byDate[dt].slice().sort(function(a, b) { return money(b.FAB_Min) - money(a.FAB_Min); });
+    var artist = list[0].Artist || 'To Be Announced';
+    var isNext = idx === nextIdx;
+    var openCls = (isNext || q || dates.length === 1) ? ' open' : '';
+    var availCount = list.filter(function(r) { return r.Status === 'Available'; }).length;
+    html += '<div class="event-card' + (isNext ? ' next-card' : '') + '">' +
+      '<div class="event-hd" onclick="var b=this.nextElementSibling;b.classList.toggle(\'open\');this.querySelector(\'.event-arrow\').classList.toggle(\'open\')">' +
+        '<div class="event-info"><div class="event-artist">' + esc(artist) + (isNext ? '<span class="next-pill">NEXT</span>' : '') + '</div>' +
+        '<div class="event-meta">' + esc(dt) + ' · ' + availCount + ' of ' + list.length + ' available</div></div>' +
+        '<div class="event-arrow' + openCls + '">▾</div></div>' +
+      '<div class="event-body' + openCls + '">';
+    list.forEach(function(r) {
+      var fab = money(r.FAB_Min), pay = money(r.Pay_Now);
+      var st = r.Status === 'Available' ? '<span class="badge avail">OPEN</span>'
+             : r.Status === 'Inquiry' ? '<span class="badge inq">INQUIRY</span>'
+             : '<span class="badge sold">SOLD OUT</span>';
+      html += '<div class="trow' + (r.Status === 'Sold Out' ? ' sold' : '') + '">' +
+        '<div class="trow-name">' + esc(r.Table) +
+          (r.Max_Guests ? '<div class="trow-sub">Up to ' + esc(r.Max_Guests) + ' guests</div>' : '') + '</div>' +
+        '<div class="trow-prices"><div class="trow-fab">' + (fab > 0 ? '$' + fab.toLocaleString() : '—') + '</div>' +
+          (pay > 0 ? '<div class="trow-deposit">$' + pay.toLocaleString() + ' deposit</div>' : '') + '</div>' +
+        st + '</div>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  c.innerHTML = html;
 }
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
-// Current data sources — may be swapped to live data after fetch
-let currentXs=xsEvents, currentEbc=ebcEvents, currentEbcNight=ebcNightEvents;
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-buildList(xsEvents,'xs-list','xs-nores','xs','XS Nightclub');
-buildList(ebcEvents,'ebc-list','ebc-nores','ebc','Encore Beach Club');
-buildList(ebcNightEvents,'ebcnight-list','ebcnight-nores','ebcnight','EBC At Night');
-buildSchedule();
-applyFilters();
-
-// Fetch live data in background — updates display silently if available
-loadLiveData();
+load();
 </script>
 </body>
 </html>
