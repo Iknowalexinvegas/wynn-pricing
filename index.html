@@ -258,25 +258,29 @@ function buildSchedule(){
 }
 
 async function loadLiveData(){
+  const sub=document.getElementById('header-sub');
+  sub.innerHTML='<span class="live-dot" style="background:#f39c12"></span>Fetching live prices…';
   try{
     const res=await fetch(SCRIPT_URL,{cache:'no-store'});
-    if(!res.ok)return;
+    if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    if(!data||typeof data!=='object')return;
+    if(!data||typeof data!=='object')throw new Error('bad data');
     let updated=false;
     if(data.xs&&data.xs.length){xsEvents=data.xs;updated=true;}
     if(data.ebc&&data.ebc.length){ebcEvents=data.ebc;updated=true;}
     if(data.ebcn&&data.ebcn.length){ebcNightEvents=data.ebcn;updated=true;}
-    if(!updated)return;
+    if(!updated)throw new Error('empty');
     buildList(xsEvents,'xs-list','xs-nores','xs','XS Nightclub',false);
     buildList(ebcEvents,'ebc-list','ebc-nores','ebc','Encore Beach Club',false);
     buildList(ebcNightEvents,'ebcnight-list','ebcnight-nores','ebcnight','EBC At Night',false);
     buildSchedule();
     applyFilters();
-    const sub=document.getElementById('header-sub');
     sub.innerHTML='<span class="live-dot"></span>Live prices loaded';
     setTimeout(()=>sub.textContent='VIP Table Pricing',4000);
-  }catch(e){/* silent fail — hardcoded data still showing */}
+  }catch(e){
+    // Live fetch failed — hardcoded fallback data is showing
+    sub.innerHTML='<span style="color:#e74c3c">⚠ Cached prices — may not match site</span>';
+  }
 }
 
 buildList(xsEvents,'xs-list','xs-nores','xs','XS Nightclub');
