@@ -54,6 +54,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 .next-pill { font-size: 9px; font-weight: 800; background: var(--gold); color: var(--dark); border-radius: 4px; padding: 2px 6px; margin-left: 6px; vertical-align: middle; flex-shrink: 0; }
 .event-arrow { color: var(--gold); font-size: 18px; transition: transform 0.2s; flex-shrink: 0; }
 .event-arrow.open { transform: rotate(180deg); }
+.event-flyer { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #2a2a42; }
 
 .event-body { display: none; }
 .event-body.open { display: block; }
@@ -99,6 +100,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 .dr-badge.ebc { background: #0a4f3c; color: #7effd4; }
 .dr-badge.ebcn { background: #3d1a5e; color: #d4aaff; }
 .dr-artist { font-size: 12px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dr-flyer { width: 22px; height: 22px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
 .dr-arrow { font-size: 16px; color: #ccc; flex-shrink: 0; }
 .tap-hint { font-size: 11px; color: var(--sub); text-align: center; margin-bottom: 10px; }
 </style>
@@ -196,7 +198,8 @@ function buildList(events,containerId,noresId,vk,venueName,autoOpen=true){
   const nx=nextIdx(events);
   document.getElementById(containerId).innerHTML=events.map((ev,i)=>{
     const d=parseDate(ev.date),isNext=i===nx;
-    return `<div class="event-card${isNext?' next-card':''}" id="ecard-${vk}-${i}" data-venue="${vk}" data-idx="${i}" data-search="${(ev.artist+' '+ev.date).toLowerCase()}" data-date-obj="${dateKey(d)}"><div class="event-hd" onclick="toggleCard(this)"><div class="event-info"><div class="event-artist">${ev.artist}${isNext?'<span class="next-pill">NEXT UP</span>':''}</div><div class="event-meta">${ev.date} &middot; ${venueName}</div></div><span class="event-arrow">&#9662;</span></div><div class="event-body"></div></div>`;
+    const flyer=ev.image?`<img class="event-flyer" src="${ev.image}" alt="" loading="lazy" onerror="this.remove()">`:'';
+    return `<div class="event-card${isNext?' next-card':''}" id="ecard-${vk}-${i}" data-venue="${vk}" data-idx="${i}" data-search="${(ev.artist+' '+ev.date).toLowerCase()}" data-date-obj="${dateKey(d)}"><div class="event-hd" onclick="toggleCard(this)">${flyer}<div class="event-info"><div class="event-artist">${ev.artist}${isNext?'<span class="next-pill">NEXT UP</span>':''}</div><div class="event-meta">${ev.date} &middot; ${venueName}</div></div><span class="event-arrow">&#9662;</span></div><div class="event-body"></div></div>`;
   }).join('');
   if(autoOpen&&nx>=0){const c=document.getElementById(`ecard-${vk}-${nx}`);if(c){toggleCard(c.querySelector('.event-hd'));setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),100);}}
 }
@@ -244,14 +247,14 @@ function buildSchedule(){
   });
   html+='</div>';
   const dateMap={};
-  const add=(evts,vk,cls)=>evts.forEach((ev,idx)=>{const d=parseDate(ev.date);if(!d)return;const k=dateKey(d);if(!dateMap[k])dateMap[k]={d,items:[]};dateMap[k].items.push({vk,idx,cls,artist:ev.artist});});
+  const add=(evts,vk,cls)=>evts.forEach((ev,idx)=>{const d=parseDate(ev.date);if(!d)return;const k=dateKey(d);if(!dateMap[k])dateMap[k]={d,items:[]};dateMap[k].items.push({vk,idx,cls,artist:ev.artist,image:ev.image});});
   add(xsEvents,'xs','xs');add(ebcEvents,'ebc','ebc');add(ebcNightEvents,'ebcnight','ebcn');
   const t=today();
   html+=`<div class="sched-title" style="margin-top:16px">Upcoming Schedule</div><div class="tap-hint">Tap a date to jump to pricing</div>`;
   Object.keys(dateMap).sort().forEach(k=>{
     const{d,items}=dateMap[k];const isToday=dateKey(d)===dateKey(t);
     const label=`${FULL[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`;
-    const venueRows=items.map(it=>`<div class="dr-row"><span class="dr-badge ${it.cls}">${it.cls==='xs'?'XS':it.cls==='ebc'?'EBC':'EBC Night'}</span><span class="dr-artist">${it.artist}</span></div>`).join('');
+    const venueRows=items.map(it=>`<div class="dr-row">${it.image?`<img class="dr-flyer" src="${it.image}" alt="" loading="lazy" onerror="this.remove()">`:''}<span class="dr-badge ${it.cls}">${it.cls==='xs'?'XS':it.cls==='ebc'?'EBC':'EBC Night'}</span><span class="dr-artist">${it.artist}</span></div>`).join('');
     html+=`<div class="date-row${isToday?' today':''}" onclick="jumpToEvent('${items[0].vk}',${items[0].idx})"><div class="dr-date">${label}${isToday?'<span class="dr-today">Today</span>':''}</div><div class="dr-venues">${venueRows}</div><div class="dr-arrow">&#8250;</div></div>`;
   });
   document.getElementById('sched-wrap').innerHTML=html;
